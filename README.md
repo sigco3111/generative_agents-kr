@@ -168,9 +168,27 @@ python3 reverie.py
 | `print all persona schedule` | 모든 페르소나의 일과 출력 |
 | `exit` | 저장하지 않고 종료 (데이터 삭제) |
 
-> 💡 **시나리오 이름**: `July1_the_ville_n3_kr_test` 는 본 fork의 한국 페르소나 3명용 시나리오.
-> `storage/` 디렉토리가 비어있으면 시뮬레이션을 새로 fork할 수 없으므로 원본 제공
-> 시뮬레이션 파일이 필요합니다. (Apache 2.0 원본의 `the_ville` 시나리오 등)
+> 💡 **시나리오 시작 방법**:
+> 1. **storage/ 디렉토리가 비어 있으면** 원본 시나리오를 fork해야 합니다.
+>    `storage/base_the_ville_isabella_maria_klaus` (원본 Isabella/Maria/Klaus 시나리오) 다운로드:
+>    ```bash
+>    # sparse-checkout으로 storage/만 가져오기 (1GB)
+>    git clone --depth 1 --filter=blob:none --sparse https://github.com/joonspk-research/generative_agents.git /tmp/ga-orig
+>    cd /tmp/ga-orig && git sparse-checkout set environment/frontend_server/storage
+>    cp -r environment/frontend_server/storage/base_the_ville_isabella_maria_klaus /Users/mac/work/generative-agents-kr/environment/frontend_server/storage/
+>    rm -rf /tmp/ga-orig
+>    ```
+>
+> 2. **reverie.py 실행**:
+>    ```
+>    Enter the name of the forked simulation: base_the_ville_isabella_maria_klaus
+>    Enter the name of the new simulation: ICBM_kr_test
+>    ```
+>    새 시나리오 `ICBM_kr_test`가 만들어지고 메인 프롬프트 진입.
+>
+> 3. **한국 페르소나로 변경** (선택): 새 시나리오를 한국 페르소나 (이서연/김민준/박지우) 로
+>    시작하려면 별도 `Korean_3personas_base` 시나리오가 필요합니다. 원본 fork의 `persona/` 디렉토리
+>    안 `agent_history_init_kr_n3.csv`를 사용하는 시나리오를 만들려면 본 fork의 issue에 요청하세요.
 
 ### ⚠️ 새 shell + venv + PYTHONPATH 주의
 
