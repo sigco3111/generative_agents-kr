@@ -1,76 +1,38 @@
 """
-Author: Joon Sung Park (joonspk@stanford.edu)
-
-File: gpt_structure.py
-Description: Wrapper functions for calling OpenAI APIs.
+File: test.py (NIM 백엔드판)
+원본: joonspk-research/generative_agents/reverie/backend_server/test.py
+라이선스: Apache 2.0 (원본) — sigco3111 한글화/수정본
+간단한 LLM 호출 sanity check.
 """
-import json
-import random
-import openai
-import time 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from persona.prompt_template.gpt_structure import ChatGPT_request
 
-from utils import *
-openai.api_key = openai_api_key
-
-def ChatGPT_request(prompt): 
-  """
-  Given a prompt and a dictionary of GPT parameters, make a request to OpenAI
-  server and returns the response. 
-  ARGS:
-    prompt: a str prompt
-    gpt_parameter: a python dictionary with the keys indicating the names of  
-                   the parameter and the values indicating the parameter 
-                   values.   
-  RETURNS: 
-    a str of GPT-3's response. 
-  """
-  # temp_sleep()
-  try: 
-    completion = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo", 
-    messages=[{"role": "user", "content": prompt}]
-    )
-    return completion["choices"][0]["message"]["content"]
-  
-  except: 
-    print ("ChatGPT ERROR")
-    return "ChatGPT ERROR"
-
+# 한국어 테스트 프롬프트 (원본 영문 프롬프트 한글화)
 prompt = """
 ---
-Character 1: Maria Lopez is working on her physics degree and streaming games on Twitch to make some extra money. She visits Hobbs Cafe for studying and eating just about everyday.
-Character 2: Klaus Mueller is writing a research paper on the effects of gentrification in low-income communities.
+인물 1: 김민준은 데이터 사이언스 석사 과정을 밟고 있으며, 용돈을 벌기 위해 주말에 카페에서 아르바이트를 한다. 거의 매일 도서관에서 공부한다.
+인물 2: 이서연은 도시 계획에 관한 연구 논문을 집필하고 있으며, 한강 주변 자전거 코스를 즐긴다.
 
-Past Context: 
-138 minutes ago, Maria Lopez and Klaus Mueller were already conversing about conversing about Maria's research paper mentioned by Klaus This context takes place after that conversation.
+과거 맥락:
+138분 전, 김민준과 이서연은 한강 자전거 코스에 대해 이야기하고 있었다. 이 맥락은 그 대화 이후에 일어난다.
 
-Current Context: Maria Lopez was attending her Physics class (preparing for the next lecture) when Maria Lopez saw Klaus Mueller in the middle of working on his research paper at the library (writing the introduction).
-Maria Lopez is thinking of initating a conversation with Klaus Mueller.
-Current Location: library in Oak Hill College
+현재 맥락: 김민준이 도서관에서 공부하고 있을 때, 이서연이 자전거 관련 노트를 정리하러 들어왔다.
+김민준이 이서연에게 먼저 말을 걸까 고민하고 있다.
+현재 위치: 오크힐 대학 도서관
 
-(This is what is in Maria Lopez's head: Maria Lopez should remember to follow up with Klaus Mueller about his thoughts on her research paper. Beyond this, Maria Lopez doesn't necessarily know anything more about Klaus Mueller) 
+(김민준의 머릿속: 이서연에게 자전거 코스 추천에 대해 물어봐야겠다고 생각한다. 이 외에는 이서연에 대해 더 아는 것이 없다.)
 
-(This is what is in Klaus Mueller's head: Klaus Mueller should remember to ask Maria Lopez about her research paper, as she found it interesting that he mentioned it. Beyond this, Klaus Mueller doesn't necessarily know anything more about Maria Lopez) 
+(이서연의 머릿속: 김민준이 자전거에 관심이 있는지 모르겠다. 이 외에는 김민준에 대해 더 아는 것이 없다.)
 
-Here is their conversation. 
+다음은 두 사람의 대화이다.
 
-Maria Lopez: "
+김민준: "
 ---
-Output the response to the prompt above in json. The output should be a list of list where the inner lists are in the form of ["<Name>", "<Utterance>"]. Output multiple utterances in ther conversation until the conversation comes to a natural conclusion.
-Example output json:
-{"output": "[["Jane Doe", "Hi!"], ["John Doe", "Hello there!"] ... ]"}
+위 프롬프트에 대한 응답을 json으로 출력하라. 출력은 리스트의 리스트 형태이며, 내부 리스트는 ["<이름>", "<발화>"] 형식이다. 대화가 자연스럽게 끝날 때까지 여러 발화를 출력하라.
+예시 출력 json:
+{"output": "[["홍길동", "안녕!"], ["김영희", "안녕하세요!"] ...]"}
 """
 
-print (ChatGPT_request(prompt))
-
-
-
-
-
-
-
-
-
-
-
-
+print(ChatGPT_request(prompt))

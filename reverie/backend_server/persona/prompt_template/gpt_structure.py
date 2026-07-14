@@ -1,331 +1,354 @@
 """
-Author: Joon Sung Park (joonspk@stanford.edu)
-
-File: gpt_structure.py
-Description: Wrapper functions for calling OpenAI APIs.
+File: gpt_structure.py (NIM 백엔드판)
+원본: joonspk-research/generative_agents/persona/prompt_template/gpt_structure.py
+라이선스: Apache 2.0 (원본) — sigco3111 한글화/수정본
+변경 사항:
+  - OpenAI ChatCompletion/Completion/Embedding → NVIDIA NIM (openai 호환)
+  - LLM: openai/gpt-oss-120b (gpt-3.5-turbo / gpt-4 대체, 통합)
+  - 임베딩: nvidia/llama-nemotron-embed-1b-v2 (asymmetric, 2048d)
+  - 비동기 호출 → 동기 (원본 인터페이스 유지)
+  - 추가: get_passage_embedding() / get_query_embedding() (asymmetric 분리)
+  - 추가: NEGATION_GUARD (한국어 부정 표현 검색 가드)
 """
+import os
 import json
+import re
+import time
 import random
-import openai
-import time 
+import urllib.request
+import urllib.error
 
-from utils import *
+# ---------------------------------------------------------------------------
+# NIM (NVIDIA) 설정 — utils.py에서 주입됨
+# ---------------------------------------------------------------------------
 
-openai.api_key = openai_api_key
+# 다음 값들은 utils.py에서 import됨
+try:
+    from utils import (
+        openai_api_key as nim_api_key,
+        key_owner,
+        maze_assets_loc,
+        env_matrix,
+        env_visuals,
+        fs_storage,
+        fs_temp_storage,
+        collision_block_id,
+        debug,
+    )
+except ImportError:
+    # standalone 테스트 시 fallback
+    nim_api_key = os.environ.get("NVIDIA_API_KEY", "")
+    key_owner = "test"
+    debug = False
+
+NIM_BASE_URL = "https://integrate.api.nvidia.com/v1"
+CHAT_MODEL = "openai/gpt-oss-120b"          # 120B reasoning model
+EMBED_MODEL = "nvidia/llama-nemotron-embed-1b-v2"  # 2048d asymmetric
+
+# ---------------------------------------------------------------------------
+# NIM API 클라이언트 (OpenAI 호환)
+# ---------------------------------------------------------------------------
+
+def _nim_post(endpoint, body, timeout=120):
+    """NIM API에 POST 요청. 응답은 JSON dict."""
+    url = f"{NIM_BASE_URL}{endpoint}"
+    data = json.dumps(body).encode("utf-8")
+    req = urllib.request.Request(url, data=data, method="POST")
+    req.add_header("Authorization", f"Bearer {nim_api_key}")
+    req.add_header("Content-Type", "application/json")
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
 
 def temp_sleep(seconds=0.1):
-  time.sleep(seconds)
-
-def ChatGPT_single_request(prompt): 
-  temp_sleep()
-
-  completion = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo", 
-    messages=[{"role": "user", "content": prompt}]
-  )
-  return completion["choices"][0]["message"]["content"]
+    time.sleep(seconds)
 
 
-# ============================================================================
-# #####################[SECTION 1: CHATGPT-3 STRUCTURE] ######################
-# ============================================================================
-
-def GPT4_request(prompt): 
-  """
-  Given a prompt and a dictionary of GPT parameters, make a request to OpenAI
-  server and returns the response. 
-  ARGS:
-    prompt: a str prompt
-    gpt_parameter: a python dictionary with the keys indicating the names of  
-                   the parameter and the values indicating the parameter 
-                   values.   
-  RETURNS: 
-    a str of GPT-3's response. 
-  """
-  temp_sleep()
-
-  try: 
-    completion = openai.ChatCompletion.create(
-    model="gpt-4", 
-    messages=[{"role": "user", "content": prompt}]
-    )
-    return completion["choices"][0]["message"]["content"]
-  
-  except: 
-    print ("ChatGPT ERROR")
-    return "ChatGPT ERROR"
+# ---------------------------------------------------------------------------
+# 부정(negation) 가드
+# ---------------------------------------------------------------------------
+# 한국어/영어 부정 표현이 passage/query 양쪽에 있는 경우 retrieval 점수를
+# 강제로 낮춥니다. (임베딩 모델은 "~않다"를 무시하는 경향 — 검증된 한계)
+# ---------------------------------------------------------------------------
+NEGATION_KO = ["않", "안 ", "못 ", "없", "아니", "말고", "싫어하", "거부하", "반대하"]
+NEGATION_EN = ["not ", "n't ", " no ", "never", "none", "cannot", "won't", "hate", "refuse"]
 
 
-def ChatGPT_request(prompt): 
-  """
-  Given a prompt and a dictionary of GPT parameters, make a request to OpenAI
-  server and returns the response. 
-  ARGS:
-    prompt: a str prompt
-    gpt_parameter: a python dictionary with the keys indicating the names of  
-                   the parameter and the values indicating the parameter 
-                   values.   
-  RETURNS: 
-    a str of GPT-3's response. 
-  """
-  # temp_sleep()
-  try: 
-    completion = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo", 
-    messages=[{"role": "user", "content": prompt}]
-    )
-    return completion["choices"][0]["message"]["content"]
-  
-  except: 
-    print ("ChatGPT ERROR")
-    return "ChatGPT ERROR"
+def negation_penalty(text_a: str, text_b: str) -> float:
+    """passage/query 양쪽의 부정 표현 비대칭 시 페널티 반환 (0.0 ~ 0.4)."""
+    a_lower = text_a.lower()
+    b_lower = text_b.lower()
+    a_neg = any(neg in a_lower for neg in NEGATION_KO + NEGATION_EN)
+    b_neg = any(neg in b_lower for neg in NEGATION_KO + NEGATION_EN)
+    # 한쪽만 부정: 강한 페널티
+    if a_neg != b_neg:
+        return 0.4
+    # 양쪽 다 부정: 약한 페널티 (둘 다 부정일 가능성 높음)
+    if a_neg and b_neg:
+        return 0.1
+    return 0.0
 
 
-def GPT4_safe_generate_response(prompt, 
-                                   example_output,
-                                   special_instruction,
-                                   repeat=3,
-                                   fail_safe_response="error",
-                                   func_validate=None,
-                                   func_clean_up=None,
-                                   verbose=False): 
-  prompt = 'GPT-3 Prompt:\n"""\n' + prompt + '\n"""\n'
-  prompt += f"Output the response to the prompt above in json. {special_instruction}\n"
-  prompt += "Example output json:\n"
-  prompt += '{"output": "' + str(example_output) + '"}'
+# ---------------------------------------------------------------------------
+# 채팅 (LLM) 호출
+# ---------------------------------------------------------------------------
 
-  if verbose: 
-    print ("CHAT GPT PROMPT")
-    print (prompt)
-
-  for i in range(repeat): 
-
-    try: 
-      curr_gpt_response = GPT4_request(prompt).strip()
-      end_index = curr_gpt_response.rfind('}') + 1
-      curr_gpt_response = curr_gpt_response[:end_index]
-      curr_gpt_response = json.loads(curr_gpt_response)["output"]
-      
-      if func_validate(curr_gpt_response, prompt=prompt): 
-        return func_clean_up(curr_gpt_response, prompt=prompt)
-      
-      if verbose: 
-        print ("---- repeat count: \n", i, curr_gpt_response)
-        print (curr_gpt_response)
-        print ("~~~~")
-
-    except: 
-      pass
-
-  return False
+def _nim_chat(messages, model=CHAT_MODEL, temperature=0.7, max_tokens=2048, top_p=1.0):
+    body = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "top_p": top_p,
+    }
+    resp = _nim_post("/chat/completions", body)
+    return resp["choices"][0]["message"]["content"]
 
 
-def ChatGPT_safe_generate_response(prompt, 
-                                   example_output,
-                                   special_instruction,
-                                   repeat=3,
-                                   fail_safe_response="error",
-                                   func_validate=None,
-                                   func_clean_up=None,
-                                   verbose=False): 
-  # prompt = 'GPT-3 Prompt:\n"""\n' + prompt + '\n"""\n'
-  prompt = '"""\n' + prompt + '\n"""\n'
-  prompt += f"Output the response to the prompt above in json. {special_instruction}\n"
-  prompt += "Example output json:\n"
-  prompt += '{"output": "' + str(example_output) + '"}'
-
-  if verbose: 
-    print ("CHAT GPT PROMPT")
-    print (prompt)
-
-  for i in range(repeat): 
-
-    try: 
-      curr_gpt_response = ChatGPT_request(prompt).strip()
-      end_index = curr_gpt_response.rfind('}') + 1
-      curr_gpt_response = curr_gpt_response[:end_index]
-      curr_gpt_response = json.loads(curr_gpt_response)["output"]
-
-      # print ("---ashdfaf")
-      # print (curr_gpt_response)
-      # print ("000asdfhia")
-      
-      if func_validate(curr_gpt_response, prompt=prompt): 
-        return func_clean_up(curr_gpt_response, prompt=prompt)
-      
-      if verbose: 
-        print ("---- repeat count: \n", i, curr_gpt_response)
-        print (curr_gpt_response)
-        print ("~~~~")
-
-    except: 
-      pass
-
-  return False
+def ChatGPT_single_request(prompt):
+    """gpt-3.5-turbo 단건 호출 대체."""
+    temp_sleep()
+    return _nim_chat([{"role": "user", "content": prompt}], temperature=0.7)
 
 
-def ChatGPT_safe_generate_response_OLD(prompt, 
-                                   repeat=3,
-                                   fail_safe_response="error",
-                                   func_validate=None,
-                                   func_clean_up=None,
-                                   verbose=False): 
-  if verbose: 
-    print ("CHAT GPT PROMPT")
-    print (prompt)
-
-  for i in range(repeat): 
-    try: 
-      curr_gpt_response = ChatGPT_request(prompt).strip()
-      if func_validate(curr_gpt_response, prompt=prompt): 
-        return func_clean_up(curr_gpt_response, prompt=prompt)
-      if verbose: 
-        print (f"---- repeat count: {i}")
-        print (curr_gpt_response)
-        print ("~~~~")
-
-    except: 
-      pass
-  print ("FAIL SAFE TRIGGERED") 
-  return fail_safe_response
+def ChatGPT_request(prompt):
+    """gpt-3.5-turbo 호출 (여러 번 시도)."""
+    temp_sleep()
+    try:
+        return _nim_chat([{"role": "user", "content": prompt}])
+    except Exception as e:
+        if debug:
+            print(f"[ChatGPT_request ERROR] {e}")
+        return "ChatGPT ERROR"
 
 
-# ============================================================================
-# ###################[SECTION 2: ORIGINAL GPT-3 STRUCTURE] ###################
-# ============================================================================
-
-def GPT_request(prompt, gpt_parameter): 
-  """
-  Given a prompt and a dictionary of GPT parameters, make a request to OpenAI
-  server and returns the response. 
-  ARGS:
-    prompt: a str prompt
-    gpt_parameter: a python dictionary with the keys indicating the names of  
-                   the parameter and the values indicating the parameter 
-                   values.   
-  RETURNS: 
-    a str of GPT-3's response. 
-  """
-  temp_sleep()
-  try: 
-    response = openai.Completion.create(
-                model=gpt_parameter["engine"],
-                prompt=prompt,
-                temperature=gpt_parameter["temperature"],
-                max_tokens=gpt_parameter["max_tokens"],
-                top_p=gpt_parameter["top_p"],
-                frequency_penalty=gpt_parameter["frequency_penalty"],
-                presence_penalty=gpt_parameter["presence_penalty"],
-                stream=gpt_parameter["stream"],
-                stop=gpt_parameter["stop"],)
-    return response.choices[0].text
-  except: 
-    print ("TOKEN LIMIT EXCEEDED")
-    return "TOKEN LIMIT EXCEEDED"
+def GPT4_request(prompt):
+    """gpt-4 호출 (gpt-oss-120b로 통일, 높은 temperature로 다양한 응답)."""
+    temp_sleep()
+    try:
+        return _nim_chat(
+            [{"role": "user", "content": prompt}],
+            temperature=0.8,
+            max_tokens=4096,
+        )
+    except Exception as e:
+        if debug:
+            print(f"[GPT4_request ERROR] {e}")
+        return "ChatGPT ERROR"
 
 
-def generate_prompt(curr_input, prompt_lib_file): 
-  """
-  Takes in the current input (e.g. comment that you want to classifiy) and 
-  the path to a prompt file. The prompt file contains the raw str prompt that
-  will be used, which contains the following substr: !<INPUT>! -- this 
-  function replaces this substr with the actual curr_input to produce the 
-  final promopt that will be sent to the GPT3 server. 
-  ARGS:
-    curr_input: the input we want to feed in (IF THERE ARE MORE THAN ONE
-                INPUT, THIS CAN BE A LIST.)
-    prompt_lib_file: the path to the promopt file. 
-  RETURNS: 
-    a str prompt that will be sent to OpenAI's GPT server.  
-  """
-  if type(curr_input) == type("string"): 
-    curr_input = [curr_input]
-  curr_input = [str(i) for i in curr_input]
+# ---------------------------------------------------------------------------
+# Safe response (재시도 + JSON 파싱)
+# ---------------------------------------------------------------------------
 
-  f = open(prompt_lib_file, "r")
-  prompt = f.read()
-  f.close()
-  for count, i in enumerate(curr_input):   
-    prompt = prompt.replace(f"!<INPUT {count}>!", i)
-  if "<commentblockmarker>###</commentblockmarker>" in prompt: 
-    prompt = prompt.split("<commentblockmarker>###</commentblockmarker>")[1]
-  return prompt.strip()
+def _safe_generate(model_name, prompt, example_output, special_instruction,
+                    repeat=3, fail_safe_response="error",
+                    func_validate=None, func_clean_up=None, verbose=False):
+    """원본 ChatGPT_safe_generate_response / GPT4_safe_generate_response 통합."""
+    full_prompt = '"""\n' + prompt + '\n"""\n'
+    full_prompt += f"Output the response to the prompt above in json. {special_instruction}\n"
+    full_prompt += "Example output json:\n"
+    full_prompt += '{"output": "' + str(example_output) + '"}'
 
+    if verbose:
+        print("[PROMPT]", full_prompt)
 
-def safe_generate_response(prompt, 
-                           gpt_parameter,
-                           repeat=5,
-                           fail_safe_response="error",
-                           func_validate=None,
-                           func_clean_up=None,
-                           verbose=False): 
-  if verbose: 
-    print (prompt)
+    for i in range(repeat):
+        try:
+            if model_name == "GPT4":
+                response = GPT4_request(full_prompt).strip()
+            else:
+                response = ChatGPT_request(full_prompt).strip()
 
-  for i in range(repeat): 
-    curr_gpt_response = GPT_request(prompt, gpt_parameter)
-    if func_validate(curr_gpt_response, prompt=prompt): 
-      return func_clean_up(curr_gpt_response, prompt=prompt)
-    if verbose: 
-      print ("---- repeat count: ", i, curr_gpt_response)
-      print (curr_gpt_response)
-      print ("~~~~")
-  return fail_safe_response
+            end_index = response.rfind("}") + 1
+            response = response[:end_index]
+            parsed = json.loads(response)["output"]
+
+            if func_validate and func_validate(parsed, prompt=full_prompt):
+                return func_clean_up(parsed, prompt=full_prompt) if func_clean_up else parsed
+
+            if verbose:
+                print(f"---- repeat {i}:", response)
+        except Exception:
+            if verbose:
+                print(f"---- repeat {i} failed")
+            continue
+
+    if debug:
+        print("[WARN] safe_generate_response returning fail_safe")
+    return fail_safe_response
 
 
-def get_embedding(text, model="text-embedding-ada-002"):
-  text = text.replace("\n", " ")
-  if not text: 
-    text = "this is blank"
-  return openai.Embedding.create(
-          input=[text], model=model)['data'][0]['embedding']
+def ChatGPT_safe_generate_response(prompt, example_output, special_instruction,
+                                    repeat=3, fail_safe_response="error",
+                                    func_validate=None, func_clean_up=None, verbose=False):
+    return _safe_generate("ChatGPT", prompt, example_output, special_instruction,
+                          repeat, fail_safe_response, func_validate, func_clean_up, verbose)
 
 
-if __name__ == '__main__':
-  gpt_parameter = {"engine": "text-davinci-003", "max_tokens": 50, 
-                   "temperature": 0, "top_p": 1, "stream": False,
-                   "frequency_penalty": 0, "presence_penalty": 0, 
-                   "stop": ['"']}
-  curr_input = ["driving to a friend's house"]
-  prompt_lib_file = "prompt_template/test_prompt_July5.txt"
-  prompt = generate_prompt(curr_input, prompt_lib_file)
-
-  def __func_validate(gpt_response): 
-    if len(gpt_response.strip()) <= 1:
-      return False
-    if len(gpt_response.strip().split(" ")) > 1: 
-      return False
-    return True
-  def __func_clean_up(gpt_response):
-    cleaned_response = gpt_response.strip()
-    return cleaned_response
-
-  output = safe_generate_response(prompt, 
-                                 gpt_parameter,
-                                 5,
-                                 "rest",
-                                 __func_validate,
-                                 __func_clean_up,
-                                 True)
-
-  print (output)
+def GPT4_safe_generate_response(prompt, example_output, special_instruction,
+                                 repeat=3, fail_safe_response="error",
+                                 func_validate=None, func_clean_up=None, verbose=False):
+    return _safe_generate("GPT4", prompt, example_output, special_instruction,
+                          repeat, fail_safe_response, func_validate, func_clean_up, verbose)
 
 
+# 하위 호환
+def ChatGPT_safe_generate_response_OLD(prompt, repeat=3, fail_safe_response="error",
+                                        func_validate=None, func_clean_up=None, verbose=False):
+    """validate 없이 단순 반복 호출 (원본 OLD API)."""
+    if verbose:
+        print(prompt)
+    for i in range(repeat):
+        try:
+            resp = ChatGPT_request(prompt).strip()
+            if func_validate and func_validate(resp, prompt=prompt):
+                return func_clean_up(resp, prompt=prompt) if func_clean_up else resp
+        except Exception:
+            pass
+    return fail_safe_response
 
 
+# ---------------------------------------------------------------------------
+# 원본 GPT-3 (Completion) API — 테스트/구 호환용
+# ---------------------------------------------------------------------------
+
+def GPT_request(prompt, gpt_parameter):
+    """원본 Completion.create() 호환. gpt-3.5-turbo로 우회."""
+    temp_sleep()
+    try:
+        return _nim_chat(
+            [{"role": "user", "content": prompt}],
+            model=CHAT_MODEL,
+            temperature=gpt_parameter.get("temperature", 0.7),
+            max_tokens=gpt_parameter.get("max_tokens", 100),
+        )
+    except Exception:
+        return "TOKEN LIMIT EXCEEDED"
 
 
+def safe_generate_response(prompt, gpt_parameter, repeat=5, fail_safe_response="error",
+                            func_validate=None, func_clean_up=None, verbose=False):
+    if verbose:
+        print(prompt)
+    for i in range(repeat):
+        resp = GPT_request(prompt, gpt_parameter)
+        if func_validate and func_validate(resp, prompt=prompt):
+            return func_clean_up(resp, prompt=prompt) if func_clean_up else resp
+    return fail_safe_response
 
 
+def generate_prompt(curr_input, prompt_lib_file):
+    """원본 generate_prompt() 호환."""
+    if isinstance(curr_input, str):
+        curr_input = [curr_input]
+    curr_input = [str(i) for i in curr_input]
+    with open(prompt_lib_file, "r", encoding="utf-8") as f:
+        prompt = f.read()
+    for count, i in enumerate(curr_input):
+        prompt = prompt.replace(f"!<INPUT {count}>!", i)
+    if "<commentblockmarker>###</commentblockmarker>" in prompt:
+        prompt = prompt.split("<commentblockmarker>###</commentblockmarker>")[1]
+    return prompt.strip()
 
 
+# ---------------------------------------------------------------------------
+# 임베딩 (비대칭)
+# ---------------------------------------------------------------------------
+
+def _nim_embed(text, input_type):
+    body = {
+        "model": EMBED_MODEL,
+        "input": [text],
+        "input_type": input_type,
+    }
+    resp = _nim_post("/embeddings", body)
+    return resp["data"][0]["embedding"]
 
 
+def get_embedding(text, model=None):
+    """원본 호환: input_type=passage 기본값."""
+    text = (text or "this is blank").replace("\n", " ")
+    return _nim_embed(text, "passage")
 
 
+def get_passage_embedding(text):
+    """메모리 저장 시 사용 (input_type=passage)."""
+    text = (text or "this is blank").replace("\n", " ")
+    return _nim_embed(text, "passage")
 
 
+def get_query_embedding(text):
+    """메모리 검색 시 사용 (input_type=query)."""
+    text = (text or "this is blank").replace("\n", " ")
+    return _nim_embed(text, "query")
 
 
+def cosine_similarity(a, b):
+    """두 임베딩 벡터의 코사인 유사도 (0.0 ~ 1.0)."""
+    if not a or not b:
+        return 0.0
+    na = sum(x * x for x in a) ** 0.5
+    nb = sum(x * x for x in b) ** 0.5
+    if na == 0 or nb == 0:
+        return 0.0
+    return sum(x * y for x, y in zip(a, b)) / (na * nb)
 
 
+def score_memory(query_text, memory_text,
+                 query_emb=None, memory_emb=None,
+                 use_negation_guard=True):
+    """
+    메모리 retrieval 점수 계산.
+    - query_text / memory_text (raw)
+    - query_emb / memory_emb (optional, precomputed)
+    - 부정 가드 자동 적용
+    """
+    if query_emb is None:
+        query_emb = get_query_embedding(query_text)
+    if memory_emb is None:
+        memory_emb = get_passage_embedding(memory_text)
+    sim = cosine_similarity(query_emb, memory_emb)
+    if use_negation_guard:
+        sim -= negation_penalty(query_text, memory_text)
+    return max(0.0, sim)
+
+
+# ---------------------------------------------------------------------------
+# self-test
+# ---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    print("=== NIM gpt_structure self-test ===\n")
+
+    # 1. 채팅
+    print("[1] ChatGPT_single_request('ping 한 단어만')")
+    try:
+        r = ChatGPT_single_request("ping 한 단어만")
+        print(f"    응답: {r.strip()}\n")
+    except Exception as e:
+        print(f"    ❌ {e}\n")
+
+    # 2. 임베딩 (asymmetric)
+    print("[2] 비대칭 임베딩 (passage vs query)")
+    try:
+        p = get_passage_embedding("이서연은 카페에서 커피를 마신다")
+        q = get_query_embedding("이서연이 마신 음료는?")
+        sim_pq = cosine_similarity(p, q)
+        print(f"    차원: {len(p)}")
+        print(f"    '이서연 카페 커피' ↔ '이서연 음료' = {sim_pq:.3f}")
+
+        p2 = get_passage_embedding("이서연은 카페에서 커피를 마신다")
+        q2 = get_query_embedding("이서연이 마신 음료는?")
+        sim_pq2 = cosine_similarity(p2, q2)
+        print(f"    재호출 안정성: {sim_pq2:.3f}")
+
+        # 부정 가드
+        pn = get_passage_embedding("이서연은 카페에서 커피를 마시지 않았다")
+        qn = get_query_embedding("이서연이 마신 음료는?")
+        sim_neg = cosine_similarity(pn, qn)
+        guarded = sim_neg - negation_penalty("이서연은 카페에서 커피를 마시지 않았다",
+                                             "이서연이 마신 음료는?")
+        print(f"    부정 케이스 (가드 전): {sim_neg:.3f}, (가드 후): {guarded:.3f}")
+    except Exception as e:
+        print(f"    ❌ {e}\n")

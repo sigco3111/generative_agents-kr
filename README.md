@@ -1,141 +1,126 @@
+# 🏘️ Generative Agents 한국어판 (NIM 백엔드)
 
+> **원본**: [joonspk-research/generative_agents](https://github.com/joonspk-research/generative_agents) · **라이선스**: Apache 2.0
+>
+> **본 fork의 변경점**: LLM 백엔드를 OpenAI → **NVIDIA NIM** 으로 교체, 한국어 환경 최적화
 
-# Generative Agents: Interactive Simulacra of Human Behavior 
-
-<p align="center" width="100%">
-<img src="cover.png" alt="Smallville" style="width: 80%; min-width: 300px; display: block; margin: auto;">
+<p align="center">
+  <img src="cover.png" alt="Smallville" style="width: 80%; min-width: 300px; display: block; margin: auto;">
 </p>
 
-This repository accompanies our research paper titled "[Generative Agents: Interactive Simulacra of Human Behavior](https://arxiv.org/abs/2304.03442)." It contains our core simulation module for  generative agents—computational agents that simulate believable human behaviors—and their game environment. Below, we document the steps for setting up the simulation environment on your local machine and for replaying the simulation as a demo animation.
+이 저장소는 Stanford의 ["Generative Agents: Interactive Simulacra of Human Behavior"](https://arxiv.org/abs/2304.03442) 논문을 한국어 환경에서 재현하기 위한 fork입니다.
 
-## <img src="https://joonsungpark.s3.amazonaws.com:443/static/assets/characters/profile/Isabella_Rodriguez.png" alt="Generative Isabella">   Setting Up the Environment 
-To set up your environment, you will need to generate a `utils.py` file that contains your OpenAI API key and download the necessary packages.
+**주요 차이점 (원본 대비)**:
+- 🤖 **LLM**: OpenAI GPT-3.5/4 → **NVIDIA NIM `openai/gpt-oss-120b`** (120B reasoning)
+- 🧠 **임베딩**: OpenAI ada-002 → **NIM `nvidia/llama-nemotron-embed-1b-v2`** (2048d asymmetric)
+- 🇰🇷 **한국어**: 페르소나 시드 + 프롬프트 + UI 한글화 (진행 중)
+- 🛡️ **부정 가드**: 한국어 "~않다" 검색 오류 보정
 
-### Step 1. Generate Utils File
-In the `reverie/backend_server` folder (where `reverie.py` is located), create a new file titled `utils.py` and copy and paste the content below into the file:
-```
-# Copy and paste your OpenAI API Key
-openai_api_key = "<Your OpenAI API>"
-# Put your name
-key_owner = "<Name>"
+> ⚠️ **현재 상태**: Phase 1 (LLM 백엔드 교체) 완료. 한국어 페르소나/프롬프트는 점진 진행.
 
-maze_assets_loc = "../../environment/frontend_server/static_dirs/assets"
-env_matrix = f"{maze_assets_loc}/the_ville/matrix"
-env_visuals = f"{maze_assets_loc}/the_ville/visuals"
+---
 
-fs_storage = "../../environment/frontend_server/storage"
-fs_temp_storage = "../../environment/frontend_server/temp_storage"
+## 📋 사전 요구사항
 
-collision_block_id = "32125"
+- Python 3.9+
+- NVIDIA NIM API 키 ([build.nvidia.com](https://build.nvidia.com)에서 무료 발급)
+- (선택) 메모리 4GB+ — 임베딩 차원이 2048이고 에이전트 25명 × 메모리 1000개 시 약 200MB
 
-# Verbose 
-debug = True
-```
-Replace `<Your OpenAI API>` with your OpenAI API key, and `<name>` with your name.
- 
-### Step 2. Install requirements.txt
-Install everything listed in the `requirements.txt` file (I strongly recommend first setting up a virtualenv as usual). A note on Python version: we tested our environment on Python 3.9.12. 
+## 🚀 설치
 
-## <img src="https://joonsungpark.s3.amazonaws.com:443/static/assets/characters/profile/Klaus_Mueller.png" alt="Generative Klaus">   Running a Simulation 
-To run a new simulation, you will need to concurrently start two servers: the environment server and the agent simulation server.
+```bash
+# 1. 클론
+git clone https://github.com/sigco3111/generative_agents-kr.git
+cd generative_agents-kr
 
-### Step 1. Starting the Environment Server
-Again, the environment is implemented as a Django project, and as such, you will need to start the Django server. To do this, first navigate to `environment/frontend_server` (this is where `manage.py` is located) in your command line. Then run the following command:
+# 2. 의존성 설치
+pip install -r requirements.txt
+# python-dotenv 사용 시 (선택):
+pip install python-dotenv
 
-    python manage.py runserver
+# 3. NIM API 키 설정
+export NVIDIA_API_KEY="nvapi-..."
 
-Then, on your favorite browser, go to [http://localhost:8000/](http://localhost:8000/). If you see a message that says, "Your environment server is up and running," your server is running properly. Ensure that the environment server continues to run while you are running the simulation, so keep this command-line tab open! (Note: I recommend using either Chrome or Safari. Firefox might produce some frontend glitches, although it should not interfere with the actual simulation.)
-
-### Step 2. Starting the Simulation Server
-Open up another command line (the one you used in Step 1 should still be running the environment server, so leave that as it is). Navigate to `reverie/backend_server` and run `reverie.py`.
-
-    python reverie.py
-This will start the simulation server. A command-line prompt will appear, asking the following: "Enter the name of the forked simulation: ". To start a 3-agent simulation with Isabella Rodriguez, Maria Lopez, and Klaus Mueller, type the following:
-    
-    base_the_ville_isabella_maria_klaus
-The prompt will then ask, "Enter the name of the new simulation: ". Type any name to denote your current simulation (e.g., just "test-simulation" will do for now).
-
-    test-simulation
-Keep the simulator server running. At this stage, it will display the following prompt: "Enter option: "
-
-### Step 3. Running and Saving the Simulation
-On your browser, navigate to [http://localhost:8000/simulator_home](http://localhost:8000/simulator_home). You should see the map of Smallville, along with a list of active agents on the map. You can move around the map using your keyboard arrows. Please keep this tab open. To run the simulation, type the following command in your simulation server in response to the prompt, "Enter option":
-
-    run <step-count>
-Note that you will want to replace `<step-count>` above with an integer indicating the number of game steps you want to simulate. For instance, if you want to simulate 100 game steps, you should input `run 100`. One game step represents 10 seconds in the game.
-
-
-Your simulation should be running, and you will see the agents moving on the map in your browser. Once the simulation finishes running, the "Enter option" prompt will re-appear. At this point, you can simulate more steps by re-entering the run command with your desired game steps, exit the simulation without saving by typing `exit`, or save and exit by typing `fin`.
-
-The saved simulation can be accessed the next time you run the simulation server by providing the name of your simulation as the forked simulation. This will allow you to restart your simulation from the point where you left off.
-
-### Step 4. Replaying a Simulation
-You can replay a simulation that you have already run simply by having your environment server running and navigating to the following address in your browser: `http://localhost:8000/replay/<simulation-name>/<starting-time-step>`. Please make sure to replace `<simulation-name>` with the name of the simulation you want to replay, and `<starting-time-step>` with the integer time-step from which you wish to start the replay.
-
-For instance, by visiting the following link, you will initiate a pre-simulated example, starting at time-step 1:  
-[http://localhost:8000/replay/July1_the_ville_isabella_maria_klaus-step-3-20/1/](http://localhost:8000/replay/July1_the_ville_isabella_maria_klaus-step-3-20/1/)
-
-### Step 5. Demoing a Simulation
-You may have noticed that all character sprites in the replay look identical. We would like to clarify that the replay function is primarily intended for debugging purposes and does not prioritize optimizing the size of the simulation folder or the visuals. To properly demonstrate a simulation with appropriate character sprites, you will need to compress the simulation first. To do this, open the `compress_sim_storage.py` file located in the `reverie` directory using a text editor. Then, execute the `compress` function with the name of the target simulation as its input. By doing so, the simulation file will be compressed, making it ready for demonstration.
-
-To start the demo, go to the following address on your browser: `http://localhost:8000/demo/<simulation-name>/<starting-time-step>/<simulation-speed>`. Note that `<simulation-name>` and `<starting-time-step>` denote the same things as mentioned above. `<simulation-speed>` can be set to control the demo speed, where 1 is the slowest, and 5 is the fastest. For instance, visiting the following link will start a pre-simulated example, beginning at time-step 1, with a medium demo speed:  
-[http://localhost:8000/demo/July1_the_ville_isabella_maria_klaus-step-3-20/1/3/](http://localhost:8000/demo/July1_the_ville_isabella_maria_klaus-step-3-20/1/3/)
-
-### Tips
-We've noticed that OpenAI's API can hang when it reaches the hourly rate limit. When this happens, you may need to restart your simulation. For now, we recommend saving your simulation often as you progress to ensure that you lose as little of the simulation as possible when you do need to stop and rerun it. Running these simulations, at least as of early 2023, could be somewhat costly, especially when there are many agents in the environment.
-
-## <img src="https://joonsungpark.s3.amazonaws.com:443/static/assets/characters/profile/Maria_Lopez.png" alt="Generative Maria">   Simulation Storage Location
-All simulations that you save will be located in `environment/frontend_server/storage`, and all compressed demos will be located in `environment/frontend_server/compressed_storage`. 
-
-## <img src="https://joonsungpark.s3.amazonaws.com:443/static/assets/characters/profile/Sam_Moore.png" alt="Generative Sam">   Customization
-
-There are two ways to optionally customize your simulations. 
-
-### Author and Load Agent History
-First is to initialize agents with unique history at the start of the simulation. To do this, you would want to 1) start your simulation using one of the base simulations, and 2) author and load agent history. More specifically, here are the steps:
-
-#### Step 1. Starting Up a Base Simulation 
-There are two base simulations included in the repository: `base_the_ville_n25` with 25 agents, and `base_the_ville_isabella_maria_klaus` with 3 agents. Load one of the base simulations by following the steps until step 2 above. 
-
-#### Step 2. Loading a History File 
-Then, when prompted with "Enter option: ", you should load the agent history by responding with the following command:
-
-    call -- load history the_ville/<history_file_name>.csv
-Note that you will need to replace `<history_file_name>` with the name of an existing history file. There are two history files included in the repo as examples: `agent_history_init_n25.csv` for `base_the_ville_n25` and `agent_history_init_n3.csv` for `base_the_ville_isabella_maria_klaus`. These files include semicolon-separated lists of memory records for each of the agents—loading them will insert the memory records into the agents' memory stream.
-
-#### Step 3. Further Customization 
-To customize the initialization by authoring your own history file, place your file in the following folder: `environment/frontend_server/static_dirs/assets/the_ville`. The column format for your custom history file will have to match the example history files included. Therefore, we recommend starting the process by copying and pasting the ones that are already in the repository.
-
-### Create New Base Simulations
-For a more involved customization, you will need to author your own base simulation files. The most straightforward approach would be to copy and paste an existing base simulation folder, renaming and editing it according to your requirements. This process will be simpler if you decide to keep the agent names unchanged. However, if you wish to change their names or increase the number of agents that the Smallville map can accommodate, you might need to directly edit the map using the [Tiled](https://www.mapeditor.org/) map editor.
-
-
-## <img src="https://joonsungpark.s3.amazonaws.com:443/static/assets/characters/profile/Eddy_Lin.png" alt="Generative Eddy">   Authors and Citation 
-
-**Authors:** Joon Sung Park, Joseph C. O'Brien, Carrie J. Cai, Meredith Ringel Morris, Percy Liang, Michael S. Bernstein
-
-Please cite our paper if you use the code or data in this repository. 
-```
-@inproceedings{Park2023GenerativeAgents,  
-author = {Park, Joon Sung and O'Brien, Joseph C. and Cai, Carrie J. and Morris, Meredith Ringel and Liang, Percy and Bernstein, Michael S.},  
-title = {Generative Agents: Interactive Simulacra of Human Behavior},  
-year = {2023},  
-publisher = {Association for Computing Machinery},  
-address = {New York, NY, USA},  
-booktitle = {In the 36th Annual ACM Symposium on User Interface Software and Technology (UIST '23)},  
-keywords = {Human-AI interaction, agents, generative AI, large language models},  
-location = {San Francisco, CA, USA},  
-series = {UIST '23}
-}
+# 4. utils.py 확인 (자동 환경변수 로드)
+python3 reverie/backend_server/utils.py  # config_check
 ```
 
-## <img src="https://joonsungpark.s3.amazonaws.com:443/static/assets/characters/profile/Wolfgang_Schulz.png" alt="Generative Wolfgang">   Acknowledgements
+## ✅ LLM 백엔드 self-test
 
-We encourage you to support the following three amazing artists who have designed the game assets for this project, especially if you are planning to use the assets included here for your own project: 
-* Background art: [PixyMoon (@_PixyMoon\_)](https://twitter.com/_PixyMoon_)
-* Furniture/interior design: [LimeZu (@lime_px)](https://twitter.com/lime_px)
-* Character design: [ぴぽ (@pipohi)](https://twitter.com/pipohi)
+```bash
+cd reverie/backend_server/persona/prompt_template
+python3 gpt_structure.py
+```
 
-In addition, we thank Lindsay Popowski, Philip Guo, Michael Terry, and the Center for Advanced Study in the Behavioral Sciences (CASBS) community for their insights, discussions, and support. Lastly, all locations featured in Smallville are inspired by real-world locations that Joon has frequented as an undergraduate and graduate student---he thanks everyone there for feeding and supporting him all these years.
+**기대 출력**:
+```
+=== NIM gpt_structure self-test ===
+[1] ChatGPT_single_request('ping 한 단어만')
+    응답: ping
+[2] 비대칭 임베딩 (passage vs query)
+    차원: 2048
+    '이서연 카페 커피' ↔ '이서연 음료' = 0.474
+    부정 케이스 (가드 전): 0.457, (가드 후): 0.057
+```
 
+## 🎮 시뮬레이션 실행
 
+```bash
+# 1. 환경 서버 (Django)
+cd environment/frontend_server
+python manage.py runserver
+# → http://localhost:8000 접속
+
+# 2. 시뮬레이션 서버 (별도 터미널)
+cd reverie/backend_server
+python reverie.py
+# → "Enter name of forked simulation:" 입력
+# → "Enter option:" → run 100
+```
+
+자세한 원본 실행 가이드는 [원본 README](https://github.com/joonspk-research/generative_agents#readme) 참고.
+
+## 🛠️ 주요 API
+
+### 비대칭 임베딩
+
+```python
+from gpt_structure import get_passage_embedding, get_query_embedding
+
+# 메모리 저장 시
+p_emb = get_passage_embedding("이서연은 카페에서 커피를 마신다")
+
+# 메모리 검색 시
+q_emb = get_query_embedding("이서연이 마신 음료는?")
+```
+
+### Retrieval 점수 (부정 가드 포함)
+
+```python
+from gpt_structure import score_memory
+
+score = score_memory(
+    query_text="이서연이 마신 음료는?",
+    memory_text="이서연은 카페에서 커피를 마시지 않았다"
+)
+# 부정 가드 자동 적용 → 0.057 (낮음, 정확한 retrieval)
+```
+
+## 📜 라이선스 및 원본 표시
+
+- **Apache License 2.0** ([LICENSE](LICENSE) 참고)
+- **원본 저작자 표시**: © 2023 Stanford University. Park, J. S., O'Brien, J. C., Cai, C. J., Morris, M. R., Liang, P., & Bernstein, M. S. (2023). Generative Agents: Interactive Simulacra of Human Behavior.
+- **변경 사항**: [MODIFIED.md](MODIFIED.md) 참고
+
+## 🚧 로드맵
+
+- [x] Phase 1: LLM 백엔드 (NIM) 교체
+- [x] Phase 1.5: 비대칭 임베딩 + 부정 가드
+- [ ] Phase 2: 페르소나 시드 한글화 (3명 → 25명)
+- [ ] Phase 3: 프롬프트 한국어 번역 (50+ 파일)
+- [ ] Phase 4: Django UI 한글화
+- [ ] Phase 5: 한국 시나리오 시뮬레이션 검증
+
+---
+
+**Built with ❤️ by sigco3111 · Powered by NVIDIA NIM**
