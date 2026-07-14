@@ -130,6 +130,7 @@ export NVIDIA_API_KEY="***"
 
 # 1. 환경 서버 (Django 시각화) — 터미널 1
 cd environment/frontend_server
+unset PYTHONPATH  # ← Hermes 데스크탑이 PYTHONPATH를 export 하는 경우 필수
 python manage.py runserver
 # → http://localhost:8000 접속
 
@@ -137,6 +138,7 @@ python manage.py runserver
 cd /path/to/generative-agents-kr
 source .venv/bin/activate
 export NVIDIA_API_KEY="***"
+unset PYTHONPATH  # ← 동일
 cd reverie/backend_server
 python3 reverie.py
 # → "Enter name of forked simulation: July1_the_ville_n3_kr_test" 입력
@@ -148,14 +150,32 @@ python3 reverie.py
 > ```bash
 > echo 'export NVIDIA_API_KEY="***"' >> ~/.zshrc
 > ```
+>
+> ⚠️ **Hermes 데스크탑 사용자 주의**: `PYTHONPATH=/Users/mac/.hermes/hermes-agent/...`가
+> 자동으로 export 되어 .venv의 패키지가 아닌 Hermes 패키지가 import 됩니다.
+> venv 활성화 후 `unset PYTHONPATH`를 실행하세요. 또는 .zshrc에 추가:
+> ```bash
+> cat >> ~/.zshrc << 'EOF'
+> alias ungate-hermes='unset PYTHONPATH'
+> EOF
+> ```
 
 브라우저를 새로고침하면 메인 시뮬레이션 화면이 한국어로 표시됩니다.
 
-### 🐍 Django 4.x 마이그레이션
+### 🐍 Django 4.x 마이그레이션 (완료됨)
 
-`reverie.py`는 원본 (Django 2.2) 코드로 작성됐지만, 본 fork는 Django 4.2 LTS로 실행됩니다.
-Django 4.x에서 변경된 사항으로 인해 `reverie.py` 실행 시 몇 가지 마이그레이션 필요할 수 있음
-(예: `path()` 사용, `MIDDLEWARE` 기본값 변경 등).
+`reverie.py`와 Django 시각화 코드는 원본 (Django 2.2) 기반으로 작성됐지만, 본 fork는 **Django 4.2 LTS**로 실행됩니다.
+
+본 fork가 적용한 Django 2 → 4 마이그레이션 패치:
+
+| 파일 | 변경 |
+|------|------|
+| `requirements.txt` | `django-cors-headers>=3.5` (2.5.3은 `django.utils.six` 사용으로 4.0에서 깨짐) |
+| `frontend_server/urls.py` | `django.conf.urls.url` → `re_path` (url은 4.0에서 제거) |
+| `translator/views.py` | `django.contrib.staticfiles.templatetags.staticfiles` → `django.templatetags.static` |
+| 11개 템플릿 | `{% load staticfiles %}` → `{% load static %}` |
+
+검증: `python manage.py check` → `System check identified no issues`, `python manage.py runserver` → HTTP 200 OK.
 
 ---
 
