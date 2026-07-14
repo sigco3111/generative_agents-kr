@@ -1,22 +1,27 @@
-# 🏘️ Generative Agents 한국어판 (NIM 백엔드)
+# 🏘️ Generative Agents 한국어판 (NVIDIA NIM 백엔드)
 
 > **원본**: [joonspk-research/generative_agents](https://github.com/joonspk-research/generative_agents) · **라이선스**: Apache 2.0
 >
-> **본 fork의 변경점**: LLM 백엔드를 OpenAI → **NVIDIA NIM** 으로 교체, 한국어 환경 최적화
+> **본 fork의 변경점**: LLM 백엔드를 OpenAI → **NVIDIA NIM** 으로 교체, **한국어 환경 완전 최적화** (페르소나 + 프롬프트 + UI)
 
 <p align="center">
   <img src="cover.png" alt="Smallville" style="width: 80%; min-width: 300px; display: block; margin: auto;">
 </p>
 
-이 저장소는 Stanford의 ["Generative Agents: Interactive Simulacra of Human Behavior"](https://arxiv.org/abs/2304.03442) 논문을 한국어 환경에서 재현하기 위한 fork입니다.
+이 저장소는 Stanford의 ["Generative Agents: Interactive Simulacra of Human Behavior"](https://arxiv.org/abs/2304.03442) 논문을 **한국어 환경에서 완전 재현**하기 위한 fork입니다. NIM API 키 하나로 한국어 시뮬레이션을 띄울 수 있습니다.
 
-**주요 차이점 (원본 대비)**:
-- 🤖 **LLM**: OpenAI GPT-3.5/4 → **NVIDIA NIM `openai/gpt-oss-120b`** (120B reasoning)
-- 🧠 **임베딩**: OpenAI ada-002 → **NIM `nvidia/llama-nemotron-embed-1b-v2`** (2048d asymmetric)
-- 🇰🇷 **한국어**: 페르소나 시드 + 프롬프트 + UI 한글화 (진행 중)
-- 🛡️ **부정 가드**: 한국어 "~않다" 검색 오류 보정
+**원본 대비 주요 차이점**:
 
-> ⚠️ **현재 상태**: Phase 1 (LLM 백엔드 교체) 완료. 한국어 페르소나/프롬프트는 점진 진행.
+| 영역 | 원본 | 본 fork |
+|------|------|---------|
+| **LLM** | OpenAI GPT-3.5/4 | NVIDIA NIM `openai/gpt-oss-120b` (120B reasoning) |
+| **임베딩** | OpenAI `text-embedding-ada-002` (1536d symmetric) | NIM `nvidia/llama-nemotron-embed-1b-v2` (2048d **asymmetric**) |
+| **페르소나** | 영어 (Isabella/Maria/Klaus) | **한국어 (이서연/김민준/박지우)** — 한강 자전거 동호회 |
+| **프롬프트** | 영어 35+개 | **한국어 35개** 자동번역 + 라우팅 |
+| **UI** | 영어 | **한국어** (Django 6 템플릿) |
+| **부정 가드** | 없음 | 한국어 "않/말/없/아니" 보정 내장 |
+
+> 🎉 **현재 상태**: Phase 1-5 모두 완료. 한국어 시뮬레이션 기능 검증됨.
 
 ---
 
@@ -24,7 +29,7 @@
 
 - Python 3.9+
 - NVIDIA NIM API 키 ([build.nvidia.com](https://build.nvidia.com)에서 무료 발급)
-- (선택) 메모리 4GB+ — 임베딩 차원이 2048이고 에이전트 25명 × 메모리 1000개 시 약 200MB
+- 메모리 4GB+ — 임베딩 차원 2048 × 에이전트 3명 × 메모리 1000개 시 약 50MB
 
 ## 🚀 설치
 
@@ -35,19 +40,12 @@ cd generative_agents-kr
 
 # 2. 의존성 설치
 pip install -r requirements.txt
-# python-dotenv 사용 시 (선택):
-pip install python-dotenv
+pip install python-dotenv  # 선택
 
 # 3. NIM API 키 설정
 export NVIDIA_API_KEY="nvapi-..."
 
-# 4. utils.py 확인 (자동 환경변수 로드)
-python3 reverie/backend_server/utils.py  # config_check
-```
-
-## ✅ LLM 백엔드 self-test
-
-```bash
+# 4. 백엔드 self-test (선택이지만 강력 권장)
 cd reverie/backend_server/persona/prompt_template
 python3 gpt_structure.py
 ```
@@ -66,61 +64,173 @@ python3 gpt_structure.py
 ## 🎮 시뮬레이션 실행
 
 ```bash
-# 1. 환경 서버 (Django)
+# 1. 환경 서버 (Django 시각화) — 터미널 1
 cd environment/frontend_server
 python manage.py runserver
 # → http://localhost:8000 접속
 
-# 2. 시뮬레이션 서버 (별도 터미널)
+# 2. 시뮬레이션 서버 — 터미널 2
 cd reverie/backend_server
-python reverie.py
-# → "Enter name of forked simulation:" 입력
-# → "Enter option:" → run 100
+python3 reverie.py
+# → "Enter name of forked simulation:" 에 시나리오 이름 입력 (예: July1_the_ville_n3_kr_test)
+# → "Enter option:" 에 run 100
 ```
 
-자세한 원본 실행 가이드는 [원본 README](https://github.com/joonspk-research/generative_agents#readme) 참고.
+브라우저를 새로고침하면 메인 시뮬레이션 화면이 한국어로 표시됩니다.
 
-## 🛠️ 주요 API
+---
 
-### 비대칭 임베딩
+## 🇰🇷 한국어 시뮬레이션 작동 검증
+
+### 페르소나 시나리오: 한강 자전거 동호회
+
+| 이름 | 직업 | 주요 특성 |
+|------|------|----------|
+| **이서연** (27) | 도시계획 석사 | 자전거 동호회 회원, 김민준에게 짝사랑 |
+| **김민준** (28) | 데이터 사이언스 석사 | 도서관 단골, 한강 카페 알바, 이서연 짝사랑 |
+| **박지우** (29) | 마케팅 매니저 | 자전거 동호회 운영진, 둘 서로 좋아하는 사실 알고 있음 |
+
+### 실제 LLM 출력 (Phase 5 검증)
+
+```bash
+cd reverie/backend_server
+python3 test_kr_sim.py
+# "이서연은 무엇을 마실까?" → "부드러운 바닐라 라떼 한 잔을 마시면 카페 분위기와 잘 어울릴 거예요."
+```
+
+**한국어 agent_chat 검증 (이서연 ↔ 김민준)**:
+```
+이서연: "민준아, 요즘 데이터 분석 프로젝트는 어때?"
+김민준: "음... 아직 모델링 단계라 좀 복잡하지만 재밌어."
+이서연: "우리 이번 주말에 한강 자전거 타면서 얘기 좀 할까?"
+김민준: "좋아! 타면서 도시계획 아이디어도 공유하고 말이야."
+```
+
+---
+
+## 🛠️ 주요 API 가이드
+
+### 한국어 페르소나 사용
 
 ```python
-from gpt_structure import get_passage_embedding, get_query_embedding
+from persona.persona_seed_kr import PERSONAS_KR_N3, to_whisper_csv
 
-# 메모리 저장 시
+# 3명 페르소나 dict
+for name, persona in PERSONAS_KR_N3.items():
+    print(f"{name}: {persona['secret']}")
+    print(to_whisper_csv(persona))
+```
+
+### 비대칭 임베딩 (저장/검색 분리)
+
+```python
+from persona.prompt_template.gpt_structure import (
+    get_passage_embedding,
+    get_query_embedding,
+    score_memory,
+)
+
+# 메모리 저장 시 (passage 형태)
 p_emb = get_passage_embedding("이서연은 카페에서 커피를 마신다")
 
-# 메모리 검색 시
+# 메모리 검색 시 (query 형태)
 q_emb = get_query_embedding("이서연이 마신 음료는?")
-```
 
-### Retrieval 점수 (부정 가드 포함)
-
-```python
-from gpt_structure import score_memory
-
+# 검색 (부정 가드 내장)
 score = score_memory(
     query_text="이서연이 마신 음료는?",
-    memory_text="이서연은 카페에서 커피를 마시지 않았다"
+    memory_text="이서연은 카페에서 커피를 마시지 않았다",
 )
-# 부정 가드 자동 적용 → 0.057 (낮음, 정확한 retrieval)
+# 0.057 (낮음 — "마시지 않았다"로 정확히 분리)
 ```
+
+### 한국어 프롬프트 자동 라우팅
+
+`generate_prompt()`가 `persona/prompt_template/...` 경로 호출 시 동일 상대경로의 `prompt_template_kr/` 파일이 있으면 자동 사용. **코드 변경 없이 영어/한국어 전환**.
+
+```python
+from persona.prompt_template.gpt_structure import generate_prompt
+
+# 자동으로 한국어 버전이 로드됨
+prompt = generate_prompt(inputs, "persona/prompt_template/v2/whisper_inner_thought_v1.txt")
+# "이서연에 대한 진술로 다음 생각을 번역하세요..."
+```
+
+---
+
+## 🔧 한국어 자동화 도구
+
+Phase 3에서 개발한 자동화 도구 (재실행 가능):
+
+| 도구 | 용도 | 실행 |
+|------|------|------|
+| `translate_prompts_kr.py` | 35개 영문 프롬프트 → 한국어 자동번역 | `cd .../prompt_template && python3 translate_prompts_kr.py` |
+| `review_prompts_kr.py` | 번역 결과 자동 검수 (코드 손실/어색 패턴 검출) | `cd .../prompt_template && python3 review_prompts_kr.py` |
+
+---
+
+## 📊 Phase별 진행 상황
+
+| Phase | 내용 | 결과 |
+|-------|------|------|
+| **1** | LLM 백엔드 (NIM) 교체 | ✅ 완료 (`b6456da`) |
+| **1.5** | 비대칭 임베딩 + 부정 가드 | ✅ 완료 (`b6456da`) |
+| **2** | 한국어 페르소나 3명 시드 | ✅ 완료 (`51f13d7`) |
+| **3** | 프롬프트 35개 자동번역 + 검수 + 라우팅 | ✅ 완료 (`d3b0210`) |
+| **4** | Django UI 6 템플릿 한글화 | ✅ 완료 (`7fb0460`) |
+| **5** | 한국어 시뮬레이션 통합 검증 | ✅ 완료 (`67afc84`) |
+| **Bug Fix** | `gpt-oss-120b` reasoning 모델 content 처리 | ✅ 완료 (`66ee15d`) |
+
+자세한 단계별 진행 사항은 `MODIFIED.md` 참고.
+
+---
 
 ## 📜 라이선스 및 원본 표시
 
 - **Apache License 2.0** ([LICENSE](LICENSE) 참고)
-- **원본 저작자 표시**: © 2023 Stanford University. Park, J. S., O'Brien, J. C., Cai, C. J., Morris, M. R., Liang, P., & Bernstein, M. S. (2023). Generative Agents: Interactive Simulacra of Human Behavior.
+- **원본 저작자 표시**: © 2023 Stanford University. Park, J. S., O'Brien, J. C., Cai, C. J., Morris, M. R., Liang, P., & Bernstein, M. S. (2023). ["Generative Agents: Interactive Simulacra of Human Behavior."](https://arxiv.org/abs/2304.03442) In Proceedings of the 37th Annual ACM Symposium on User Interface Software and Technology.
 - **변경 사항**: [MODIFIED.md](MODIFIED.md) 참고
-
-## 🚧 로드맵
-
-- [x] Phase 1: LLM 백엔드 (NIM) 교체
-- [x] Phase 1.5: 비대칭 임베딩 + 부정 가드
-- [ ] Phase 2: 페르소나 시드 한글화 (3명 → 25명)
-- [ ] Phase 3: 프롬프트 한국어 번역 (50+ 파일)
-- [ ] Phase 4: Django UI 한글화
-- [ ] Phase 5: 한국 시나리오 시뮬레이션 검증
 
 ---
 
-**Built with ❤️ by sigco3111 · Powered by NVIDIA NIM**
+## 🔗 레포지토리 구조
+
+```
+generative-agents-kr/
+├── reverie/backend_server/         # 시뮬레이션 서버 (Phase 1-3)
+│   ├── persona/
+│   │   ├── prompt_template/
+│   │   │   ├── v1/, v2/, v3_ChatGPT/, safety/    # 원본 영문
+│   │   │   └── prompt_template_kr/...             # 한국어 (자동 생성)
+│   │   ├── persona_seed_kr.py                    # 한국어 3명 페르소나
+│   │   └── refresh_persona_csv.py                # CSV 자동 갱신
+│   ├── gpt_structure.py                          # NIM 백엔드 (한국어 라우팅)
+│   ├── reverie.py                                # 시뮬레이션 메인
+│   └── test_kr_sim.py                            # Phase 5 검증 도구
+│
+├── environment/frontend_server/    # Django 시각화 (Phase 4 한글화)
+│   └── templates/
+│       ├── base.html                            # 한글 헤더/푸터
+│       ├── landing/landing.html                 # 환경 안내
+│       ├── home/home.html                       # 시뮬 메인
+│       ├── demo/demo.html                       # 데모 뷰
+│       ├── home/error_start_backend.html        # 백엔드 미연결 안내
+│       └── persona_state/persona_state.html     # 페르소나 상세 (28+ 라벨)
+│
+├── README.md                                       # 이 파일
+├── MODIFIED.md                                     # Apache 2.0 §4(a) 준수
+└── LICENSE                                         # 원본 라이선스
+```
+
+---
+
+## 🚧 향후 확장 (옵션)
+
+- [ ] 페르소나 3명 → 25명 확장 (원본 `March20_the_ville_n25` 시나리오 한국화)
+- [ ] 음성 (TTS) — 한국어 음성 합성 통합
+- [ ] 공간 자산 (맵/스프라이트) 한국어 라벨링
+- [ ] 비동기 + 멀티시뮬레이션 안정화
+
+---
+
+**Built with ❤️ by sigco3111 · Powered by NVIDIA NIM (gpt-oss-120b)**
