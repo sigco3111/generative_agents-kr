@@ -630,16 +630,21 @@ def _determine_action(persona, maze):
   # (TOKEN LIMIT 폴백 등) 시뮬이 죽지 않도록 fallback.
   valid_arenas = list(maze.address_tiles.get(act_world, {}).get(act_sector, {}).keys())
   if act_arena not in valid_arenas and act_arena.lower() not in [a.lower() for a in valid_arenas]:
-    # 현재 위치에 머무름 (제자리 행동)
+    # 현재 위치에 머무름 (제자리 행동) — act_address 명시적 설정 필요
     curr_tile = persona.scratch.curr_tile
-    try:
-      persona.scratch.add_new_action(
-          ":".join([str(p) for p in curr_tile[:3]]) + ":__stay__",
-          act_desp,
-          curr_tile,
-      )
-    except Exception:
-      pass
+    if curr_tile:
+      # curr_tile: (x, y) → address string으로 변환
+      try:
+        curr_address = f"{act_world}:{act_sector}:{maze.access_tile(curr_tile)['arena']}"
+      except Exception:
+        curr_address = f"{act_world}:{act_sector}:__stay__"
+      try:
+        persona.scratch.act_address = curr_address
+        persona.scratch.act_pronunciatio = "❓"
+        persona.scratch.act_event = (persona.scratch.curr_tile, "stay", "stay")
+        persona.scratch.add_new_action(curr_address + ":__stay__", act_desp, curr_tile)
+      except Exception:
+        pass
     return  # 다음 step에서 다시 시도
   act_game_object = generate_action_game_object(act_desp, act_address,
                                                 persona, maze)

@@ -32,7 +32,11 @@ def execute(persona, maze, personas, plan):
   OUTPUT: 
     execution
   """
-  if "<random>" in plan and persona.scratch.planned_path == []: 
+  # NIM gpt-oss-120b 마이그레이션: plan이 None일 때 방어.
+  if plan is None or not plan:
+    return False, None, None, None, None, None, None
+
+  if "<random>" in plan and persona.scratch.planned_path == []:
     persona.scratch.act_path_set = False
 
   # <act_path_set> is set to True if the path is set for the current action. 
