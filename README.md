@@ -120,20 +120,42 @@ python3 gpt_structure.py
 
 ## 🎮 시뮬레이션 실행
 
+**각 터미널을 열 때마다 venv를 먼저 활성화해야 합니다** (새 shell에서는 venv가 자동 비활성화됨):
+
 ```bash
+# 모든 터미널 공통 — 프로젝트 루트에서
+cd /path/to/generative-agents-kr
+source .venv/bin/activate  # ← 이거 안 하면 Django/NumPy 못 찾음
+export NVIDIA_API_KEY="***"
+
 # 1. 환경 서버 (Django 시각화) — 터미널 1
 cd environment/frontend_server
 python manage.py runserver
 # → http://localhost:8000 접속
 
-# 2. 시뮬레이션 서버 — 터미널 2
+# 2. 시뮬레이션 서버 — 터미널 2 (venv 활성화 다시 필요!)
+cd /path/to/generative-agents-kr
+source .venv/bin/activate
+export NVIDIA_API_KEY="***"
 cd reverie/backend_server
 python3 reverie.py
-# → "Enter name of forked simulation:" 에 시나리오 이름 입력 (예: July1_the_ville_n3_kr_test)
-# → "Enter option:" 에 run 100
+# → "Enter name of forked simulation: July1_the_ville_n3_kr_test" 입력
+# → "Enter option: run 100" 입력
 ```
 
+> ⚠️ **새 shell을 열 때마다 venv가 풀립니다.** `source .venv/bin/activate` 잊지 마세요.
+> 또는 환경변수를 shell rc (~/.zshrc)에 추가해두면 편리합니다:
+> ```bash
+> echo 'export NVIDIA_API_KEY="***"' >> ~/.zshrc
+> ```
+
 브라우저를 새로고침하면 메인 시뮬레이션 화면이 한국어로 표시됩니다.
+
+### 🐍 Django 4.x 마이그레이션
+
+`reverie.py`는 원본 (Django 2.2) 코드로 작성됐지만, 본 fork는 Django 4.2 LTS로 실행됩니다.
+Django 4.x에서 변경된 사항으로 인해 `reverie.py` 실행 시 몇 가지 마이그레이션 필요할 수 있음
+(예: `path()` 사용, `MIDDLEWARE` 기본값 변경 등).
 
 ---
 
