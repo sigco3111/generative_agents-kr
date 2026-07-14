@@ -38,17 +38,28 @@
 git clone https://github.com/sigco3111/generative_agents-kr.git
 cd generative_agents-kr
 
-# 2. 의존성 설치
+# 2. venv 생성 (PEP 668 회피 — macOS Sonoma+ 권장)
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 3. 의존성 설치
 pip install -r requirements.txt
 pip install python-dotenv  # 선택
 
-# 3. NIM API 키 설정
+# 4. NIM API 키 설정
 export NVIDIA_API_KEY="nvapi-..."
 
-# 4. 백엔드 self-test (선택이지만 강력 권장)
+# 5. 백엔드 self-test (선택이지만 강력 권장)
 cd reverie/backend_server/persona/prompt_template
 python3 gpt_structure.py
 ```
+
+> ⚠️ **macOS Sonoma+ / 시스템 Python 사용자**: `pip install -r requirements.txt` 시
+> "command not found: pip" 또는 "externally-managed-environment" 에러가 날 수 있습니다.
+> 위 예시처럼 `.venv`를 만들고 활성화해서 사용하세요.
+>
+> 이미 다른 venv를 쓰고 있다면 그것을 활성화해도 됩니다.
+> (예: Hermes 환경이 있다면 `source ~/.hermes/hermes-agent/venv/bin/activate`)
 
 **기대 출력**:
 ```
