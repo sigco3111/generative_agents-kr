@@ -179,16 +179,36 @@ python3 reverie.py
 >    rm -rf /tmp/ga-orig
 >    ```
 >
-> 2. **reverie.py 실행**:
+> 2. **reverie.py 실행** (새 시나리오 생성):
 >    ```
 >    Enter the name of the forked simulation: base_the_ville_isabella_maria_klaus
 >    Enter the name of the new simulation: ICBM_kr_test
 >    ```
 >    새 시나리오 `ICBM_kr_test`가 만들어지고 메인 프롬프트 진입.
 >
-> 3. **한국 페르소나로 변경** (선택): 새 시나리오를 한국 페르소나 (이서연/김민준/박지우) 로
->    시작하려면 별도 `Korean_3personas_base` 시나리오가 필요합니다. 원본 fork의 `persona/` 디렉토리
->    안 `agent_history_init_kr_n3.csv`를 사용하는 시나리오를 만들려면 본 fork의 issue에 요청하세요.
+> 3. **시뮬레이션 시작** (메인 프롬프트):
+>    ```
+>    Enter option: run 100
+>    ```
+>    100 step 시뮬레이션이 진행됨 (1 step당 ~10초 = 약 17분 소요).
+>    NIM LLM 호출이므로 NIM API 키와 인터넷 연결 필수.
+>
+> 4. **브라우저에서 실시간 확인**:
+>    - **터미널 1**의 Django 서버가 띄워져 있어야 함 (위 "터미널 1" 가이드)
+>    - 브라우저로 `http://localhost:8000/replay/ICBM_kr_test/0/` 접속
+>    - 또는 `http://localhost:8000/` 에서 시뮬레이션 목록 확인 후 진입
+>    - 한국어 UI로 페르소나들의 현재 행동/대화가 실시간 표시됨
+>    - step이 진행될 때마다 페르소나 행동 업데이트
+>
+> 5. **시뮬레이션 일시정지/재개** (브라우저에서):
+>    - 화면 상단 ▶ 재생 / ⏸ 일시정지 버튼
+>    - 또는 URL의 step 번호 변경 (예: `/replay/ICBM_kr_test/50/`)
+>
+> 6. **시뮬레이션 저장 + 종료** (터미널 2의 reverie.py 프롬프트에서):
+>    ```
+>    Enter option: fin
+>    ```
+>    다음에 같은 시나리오로 돌아오려면 `Enter the name of the forked simulation: ICBM_kr_test` 입력.
 
 ### ⚠️ 새 shell + venv + PYTHONPATH 주의
 
