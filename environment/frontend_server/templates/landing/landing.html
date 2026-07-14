@@ -1,10 +1,43 @@
+<!--
+File: landing.html (한글화판 — sigco3111)
+원본: joonspk-research/generative_agents
+라이선스: Apache 2.0
+-->
 {% extends "base.html" %}
 {% load staticfiles %}
 
 {% block content %}
-<div style="padding:2em">
-<img src="{% static 'img/atlas.png' %}">
-Your environment server is up and running! 
+<div style="padding:3em; max-width:60em; margin:0 auto">
+  <img src="{% static 'img/atlas.png' %}" style="display:block; margin:0 auto 2em; max-width:200px">
+  <div style="background-color:#ecf0f1; padding:2em; border-radius:10px; margin-bottom:1em">
+    <h2 style="margin-top:0; color:#2c3e50">✅ 환경 서버 정상 동작 중!</h2>
+    <p style="margin-bottom:0">
+      Generative Agents 한국어판 시뮬레이션 시각화 서버가 작동합니다.
+      백엔드 시뮬레이션 (reverie/backend_server/reverie.py)을 시작한 후 새로고침하세요.
+    </p>
+  </div>
+
+  <div style="background-color:#fff8dc; padding:1.5em; border-radius:10px; border:1px solid #f0d970; margin-bottom:1em">
+    <h3 style="margin-top:0; color:#8b6914">📋 실행 안내</h3>
+    <ol style="line-height:1.8">
+      <li>백엔드 터미널: <code>cd reverie/backend_server</code></li>
+      <li>시뮬 실행: <code>python3 reverie.py</code></li>
+      <li>"Enter name of forked simulation:" 에 <code>July1_the_ville_n3_kr_test</code> 입력 (또는 직접 만들 시나리오 이름)</li>
+      <li>"Enter option:" 에 <code>run 100</code> 입력</li>
+      <li>이 페이지를 새로고침하면 메인 화면이 표시됩니다</li>
+    </ol>
+  </div>
+
+  <div style="text-align:center; margin-top:2em">
+    <a href="/" style="margin:0 0.5em">
+      <button type="button" class="btn btn-primary btn-lg">🏠 메인으로</button>
+    </a>
+    <a href="/demo/" style="margin:0 0.5em">
+      <button type="button" class="btn btn-default btn-lg">🎬 데모 보기</button>
+    </a>
+    <a href="/path_tester/" style="margin:0 0.5em">
+      <button type="button" class="btn btn-default btn-lg">🗺️ 경로 테스터</button>
+    </a>
+  </div>
 </div>
 {% endblock content %}
-
