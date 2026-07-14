@@ -236,9 +236,12 @@ python3 reverie.py
   venv 활성화 후 `unset PYTHONPATH` 필수. 또는 alias 등록:
   ```bash
   cat >> ~/.zshrc << 'EOF'
-  alias ungate-hermes='unset PYTHONPATH'
+  alias ga-activate='cd /path/to/generative-agents-kr && source .venv/bin/activate && unset PYTHONPATH && export NVIDIA_API_KEY="***"'
+  alias ga-server='cd /path/to/generative-agents-kr && source .venv/bin/activate && unset PYTHONPATH && export NVIDIA_API_KEY="***" && cd environment/frontend_server && python manage.py runserver'
+  alias ga-sim='cd /path/to/generative-agents-kr && source .venv/bin/activate && unset PYTHONPATH && export NVIDIA_API_KEY="***" && cd reverie/backend_server && python3 reverie.py'
   EOF
   ```
+  사용: `ga-activate` → `ga-server` (터미널 1) + `ga-sim` (터미널 2)
 
 ### 🐍 Django 4.x 마이그레이션 (완료됨)
 
