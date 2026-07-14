@@ -186,6 +186,18 @@ python3 reverie.py
 >    ```
 >    새 시나리오 `ICBM_kr_test`가 만들어지고 메인 프롬프트 진입.
 >
+>    ⚠️ **같은 이름으로 재실행 시** `FileExistsError: .../ICBM_kr_test` 에러 발생.
+>    이전 시나리오를 이어가려면:
+>    ```
+>    Enter the name of the forked simulation: ICBM_kr_test  # ← 이전 폴더 이름
+>    Enter the name of the new simulation: ICBM_kr_test_v2
+>    ```
+>    또는 깨끗하게 처음부터:
+>    ```bash
+>    rm -rf environment/frontend_server/storage/ICBM_kr_test
+>    ```
+>    후 같은 이름으로 재실행.
+>
 > 3. **시뮬레이션 시작** (메인 프롬프트):
 >    ```
 >    Enter option: run 100
