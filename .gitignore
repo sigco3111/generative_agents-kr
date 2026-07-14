@@ -1,0 +1,53 @@
+# Apache 2.0 원본 .gitignore (joonspk-research/generative_agents) 패턴 + 한글화 보강
+# 원본: https://github.com/joonspk-research/generative_agents
+
+# 민감/시크릿
+reverie/backend_server/utils.py
+frontend_server/settings/local.py
+storage/*
+static_dirs/*
+
+# 시뮬레이션 베이스는 추적 (다운로드 불필요)
+!storage/base_the_ville_isabella_maria_klaus/*
+!storage/base_the_ville_n25/*
+
+# 시뮬레이션 결과는 추적 안함 (재생성 가능)
+environment/frontend_server/storage/
+environment/frontend_server/compressed_storage/
+environment/frontend_server/db.sqlite3
+environment/frontend_server/*.log
+reverie/backend_server/storage/
+reverie/backend_server/temp_storage/
+reverie/backend_server/environment/
+bin/
+include/
+pip-selfcheck.json
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+.venv/
+
+# 로그
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
