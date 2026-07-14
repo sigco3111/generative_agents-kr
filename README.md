@@ -42,8 +42,8 @@ cd generative-agents-kr
 python3 -m venv .venv
 source .venv/bin/activate
 
-# 3. 의존성 설치 (Python 3.11+는 --upgrade 플래그 필요 — 아래 "호환성 노트" 참고)
-pip install --upgrade -r requirements.txt
+# 3. 의존성 설치 (requirements.txt는 이미 Python 3.11+ 호환 버전으로 갱신됨)
+pip install -r requirements.txt
 pip install python-dotenv  # 선택
 
 # 4. NIM API 키 설정
@@ -74,49 +74,15 @@ python3 gpt_structure.py
 
 ## ⚠️ Python 호환성 노트
 
-원본 `requirements.txt`는 **2022년 Python 3.7~3.9 환경에서 작성**되었습니다. Python 3.10+에서는 다음 패키지들이 빌드 실패 또는 호환성 문제가 있습니다:
+원본 `requirements.txt`는 **2022년 Python 3.7~3.9 환경에서 작성**되었습니다.
 
-| 패키지 | 원본 버전 | 문제 | 해결 |
-|--------|----------|------|------|
-| `Pillow` | 8.4.0 | ❌ Python 3.11에서 libjpeg 등 native 의존성 빌드 실패 | **`pip install "Pillow>=10.0"` 먼저 (wheel 빌드된 버전)** |
-| `Django` | 2.2 | Python 3.11 일부 syntax 미지원 | `pip install "Django>=4.2,<5"` |
-| `gensim` | 3.8.0 | Python 3.11에서 cython 호환 X | `pip install "gensim>=4.3"` |
-| `pandas`/`numpy`/`scipy` | 1.x | ABI 호환성 (Pillow 의존) | `pip install --upgrade` |
-| `sklearn` | 1.3.0 | 메타 패키지, scikit-learn 1.4+ 권장 | `pip install "scikit-learn>=1.4"` |
+본 fork는 Python 3.11+ 호환성 문제를 해결하기 위해 `requirements.txt`에 다음 변경을 미리 적용했습니다:
+- `Pillow>=10.0` (8.4.0은 wheel 부재로 libjpeg 빌드 실패)
+- `Django>=4.2,<5` (2.2는 Python 3.11 syntax 미지원)
+- `gensim>=4.3` (3.8.0은 cython 빌드 실패)
+- `asgiref>=3.6`, `numpy>=1.26`, `pandas>=2.0`, `scikit-learn>=1.4`, `scipy>=1.11`, `six>=1.16` (의존성 충돌 방지)
 
-### 빠른 호환 설치 (검증된 조합 — Python 3.11)
-
-Hermes venv 사용 시 (이미 PIL 있음):
-
-```bash
-source ~/.hermes/hermes-agent/venv/bin/activate
-pip install --upgrade "Django>=4.2,<5" "numpy>=1.26,<2" "pandas>=2.0" \
-  "scikit-learn>=1.4" "scipy>=1.11" "statsmodels>=0.14" "seaborn>=0.13" \
-  "matplotlib>=3.8" "gensim>=4.3" "nltk>=3.8" "openai>=1.0"
-```
-
-새 venv 사용 시:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip
-
-# ⚠️ Pillow 8.4.0 빌드 실패 → Pillow 최신(wheel)을 먼저 설치
-# ⚠️ zsh에서 `>`는 출력 리다이렉션이므로 반드시 따옴표 사용!
-pip install "Pillow>=10.0"
-pip install "Django>=4.2,<5" "gensim>=4.3"
-pip install -r requirements.txt  # 나머지 의존성
-pip install "numpy>=1.26,<2" "pandas>=2.0" "scikit-learn>=1.4" "scipy>=1.11" "statsmodels>=0.14" "seaborn>=0.13" "matplotlib>=3.8" "nltk>=3.8" "openai>=1.0"
-```
-
-> 💡 **zsh 사용자 주의**: `pip install Pillow>=10.0` 처럼 따옴표 없이 쓰면
-> zsh가 `>=10.0`을 명령어로 해석해서 `10.0 not found` 에러가 납니다.
-> **반드시 `"Pillow>=10.0"` 처럼 따옴표로 감싸세요.** bash에서는 작동하지만 zsh 호환을 위해 항상 따옴표 권장.
-
-> 💡 **Pillow 빌드 실패 회피**: macOS에서 `Pillow==8.4.0`은 libjpeg 등 native 라이브러리가 필요한데,
-> Python 3.11 wheel이 없어서 source build가 실패합니다. `Pillow>=10.0`은 wheel이 미리 빌드되어
-> libjpeg 없이도 즉시 설치됩니다.
+원본 strict 버전은 `requirements-original-2022.txt`에 백업. **사용자는 그냥 `pip install -r requirements.txt`만 하면 됩니다.**
 
 ### 검증된 의존성 조합 (2026-07)
 
