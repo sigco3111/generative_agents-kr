@@ -103,11 +103,16 @@ source .venv/bin/activate
 pip install --upgrade pip
 
 # ⚠️ Pillow 8.4.0 빌드 실패 → Pillow 최신(wheel)을 먼저 설치
-pip install --upgrade "Pillow>=10.0"
-pip install --upgrade "Django>=4.2,<5" "gensim>=4.3"
+# ⚠️ zsh에서 `>`는 출력 리다이렉션이므로 반드시 따옴표 사용!
+pip install "Pillow>=10.0"
+pip install "Django>=4.2,<5" "gensim>=4.3"
 pip install -r requirements.txt  # 나머지 의존성
-pip install --upgrade "numpy>=1.26,<2" "pandas>=2.0" "scikit-learn>=1.4" "scipy>=1.11" "statsmodels>=0.14" "seaborn>=0.13" "matplotlib>=3.8" "nltk>=3.8" "openai>=1.0"
+pip install "numpy>=1.26,<2" "pandas>=2.0" "scikit-learn>=1.4" "scipy>=1.11" "statsmodels>=0.14" "seaborn>=0.13" "matplotlib>=3.8" "nltk>=3.8" "openai>=1.0"
 ```
+
+> 💡 **zsh 사용자 주의**: `pip install Pillow>=10.0` 처럼 따옴표 없이 쓰면
+> zsh가 `>=10.0`을 명령어로 해석해서 `10.0 not found` 에러가 납니다.
+> **반드시 `"Pillow>=10.0"` 처럼 따옴표로 감싸세요.** bash에서는 작동하지만 zsh 호환을 위해 항상 따옴표 권장.
 
 > 💡 **Pillow 빌드 실패 회피**: macOS에서 `Pillow==8.4.0`은 libjpeg 등 native 라이브러리가 필요한데,
 > Python 3.11 wheel이 없어서 source build가 실패합니다. `Pillow>=10.0`은 wheel이 미리 빌드되어
