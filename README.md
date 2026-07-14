@@ -46,13 +46,25 @@ source .venv/bin/activate
 pip install -r requirements.txt
 pip install python-dotenv  # 선택
 
-# 4. NIM API 키 설정
+# 4. NIM API 키 설정 (https://build.nvidia.com 에서 무료 발급)
+#    키 형식: nvapi-XXXXXXXXXXXXXXXXXXXXXXXXXXXX (보통 60자+)
 export NVIDIA_API_KEY="nvapi-..."
 
 # 5. 백엔드 self-test (선택이지만 강력 권장)
 cd reverie/backend_server/persona/prompt_template
 python3 gpt_structure.py
 ```
+
+> ⚠️ **API 키 에러 디버깅**: `HTTP Error 500: Internal Server Error` 또는
+> `Missing request extension: headers::common::authorization` 에러가 나면
+> NIM API 키가 잘못된 것입니다. 키 발급 사이트 ([build.nvidia.com](https://build.nvidia.com))
+> 에서 새 키를 받아 다시 export 하세요. 500/401/403 모두 키 문제일 가능성이 높습니다.
+>
+> 여러 키를 가지고 있다면 `~/.hermes/secrets/nvidia_keys.env` 파일에 저장 후:
+> ```bash
+> source ~/.hermes/secrets/nvidia_keys.env
+> export NVIDIA_API_KEY="$NVIDIA_API_KEY_1"
+> ```
 
 > ⚠️ **macOS Sonoma+ / 시스템 Python 사용자**: `pip install -r requirements.txt` 시
 > "command not found: pip" 또는 "externally-managed-environment" 에러가 날 수 있습니다.
