@@ -1,4 +1,4 @@
-# 🏘️ Generative Agents 한국어판 (NVIDIA NIM 백엔드)
+# 🏘️ Generative Agents 한국어판 (NVIDIA NIM)
 
 > **원본**: [joonspk-research/generative_agents](https://github.com/joonspk-research/generative_agents) · **라이선스**: Apache 2.0
 >
