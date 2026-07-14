@@ -1,0 +1,16 @@
+memo_on_convo_v1.txt
+
+Variables: 
+!<INPUT 0>! -- 전체 대화 발화
+!<INPUT 1>! -- 페르소나 이름
+!<INPUT 2>! -- 페르소나 이름
+!<INPUT 3>! -- 페르소나 이름
+
+<commentblockmarker>###</commentblockmarker>
+[대화]
+!<INPUT 0>!
+
+!<INPUT 1>!가 !<INPUT 2>!의 관점에서 흥미롭게 여겼을 수 있는 대화 내용이 있다면, 전체 문장으로 적으세요.
+
+"!<INPUT 3>!
+=== 끝 ===

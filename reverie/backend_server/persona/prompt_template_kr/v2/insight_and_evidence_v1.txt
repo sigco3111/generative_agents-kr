@@ -1,0 +1,13 @@
+insight_and_evidence_v1.txt
+
+Variables: 
+!<INPUT 0>! -- 사건/생각 진술의 번호 매긴 리스트
+!<INPUT 1>! -- 대상 페르소나 이름 또는 "the conversation"
+
+<commentblockmarker>###</commentblockmarker>
+Input:
+!<INPUT 0>!
+
+What !<INPUT 1>! high-level insights can you infer from the above statements? (example format: insight (because of 1, 5, 3))
+1.
+=== 끝 ===

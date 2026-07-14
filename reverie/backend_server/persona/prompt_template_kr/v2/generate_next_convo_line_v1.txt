@@ -1,0 +1,24 @@
+generate_next_convo_line_v1.txt
+
+Variables: 
+!<INPUT 0>! -- 에이전트 이름
+!<INPUT 1>! -- 에이전트 ISS
+!<INPUT 2>! -- 에이전트 이름
+!<INPUT 3>! -- 대화 상대 이름 및 설명
+!<INPUT 4>! -- 이전 대화
+!<INPUT 5>! -- 요약 가져오기
+!<INPUT 6>! -- 에이전트 이름
+
+<commentblockmarker>###</commentblockmarker>
+!<INPUT 0>!에 대한 기본 정보는 다음과 같습니다.
+!<INPUT 1>!
+
+=== 
+!<INPUT 2>!와 !<INPUT 3>! 사이의 대화는 다음과 같습니다. 
+
+!<INPUT 4>!
+
+(참고 -- 이것은 !<INPUT 5>!가 가지고 있는 유일한 정보입니다: !<INPUT 6>!)
+
+!<INPUT 7>!: "
+=== 끝 ===

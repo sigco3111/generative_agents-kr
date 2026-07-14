@@ -1,0 +1,17 @@
+convo_to_thoughts_v1.txt
+
+Variables: 
+!<INPUT 0>! -- 초기 인물 이름
+!<INPUT 1>! -- 대상 인물 이름
+!<INPUT 2>! -- 대화 문자열
+!<INPUT 3>! -- 초기 인물 이름
+!<INPUT 4>! -- 대상 인물 이름 또는 "대화"
+
+<commentblockmarker>###</commentblockmarker>
+!<INPUT 0>!와 !<INPUT 1>! 사이에서 일어난 대화는 다음과 같습니다.
+
+!<INPUT 2>!
+
+!<INPUT 3>!가 !<INPUT 4>!에 대해 생각한 내용을 한 문장으로 요약하세요. 문장은 3인칭으로 작성해야 합니다.
+
+=== 끝 ===

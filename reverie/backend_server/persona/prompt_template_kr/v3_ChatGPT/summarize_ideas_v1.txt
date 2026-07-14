@@ -1,0 +1,15 @@
+summarize_ideas_v1.txt
+
+Variables: 
+!<INPUT 0>! -- 진술
+!<INPUT 1>! -- 에이전트 이름
+!<INPUT 2>! -- 면접관 질문
+
+<commentblockmarker>###</commentblockmarker>
+진술: 
+!<INPUT 0>!
+
+면접관이 !<INPUT 1>!에게 말했습니다: 
+"!<INPUT 2>!"
+
+면접관의 발언과 가장 관련성이 높은 진술을 요약하세요:

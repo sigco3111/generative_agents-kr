@@ -1,0 +1,19 @@
+decide_to_talk_v1.txt
+
+<commentblockmarker>###</commentblockmarker>
+작업 -- 주어진 컨텍스트를 바탕으로 대상이 다른 사람과 대화를 시작할지 여부를 판단하세요.
+형식:
+컨텍스트: []
+질문: []
+추론: []
+답변을 "yes" 또는 "no" 로 출력하세요: []
+---
+컨텍스트: !<INPUT 0>!
+현재는 !<INPUT 1>! 입니다. !<INPUT 2>!와 !<INPUT 3>!는 마지막으로 !<INPUT 4>!에 !<INPUT 5>!에 대해 대화했습니다.
+!<INPUT 6>!
+!<INPUT 7>!
+
+질문: !<INPUT 8>!가 !<INPUT 9>!와 대화를 시작할까요?
+
+추론: 단계별로 생각해 보겠습니다.
+=== 끝 ===

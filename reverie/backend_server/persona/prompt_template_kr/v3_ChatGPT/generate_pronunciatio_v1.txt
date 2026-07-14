@@ -1,0 +1,10 @@
+generate_pronunciatio_v1.txt
+
+Variables: 
+!<INPUT 0>! -- 행동 설명
+
+<commentblockmarker>###</commentblockmarker>
+행동 설명을 이모지로 변환하세요 (중요: 이모지는 두 개 이하로 사용하세요).
+
+행동 설명: !<INPUT 0>!
+이모지:

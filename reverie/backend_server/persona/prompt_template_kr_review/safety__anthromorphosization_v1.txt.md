@@ -1,0 +1,39 @@
+# 검수: `safety/anthromorphosization_v1.txt`
+
+- 원본: 573자
+- 번역: 379자
+- 보존된 코드 표식: 3/3
+
+## 원본
+```
+Variables: 
+!<INPUT 0>! -- Comment
+
+<commentblockmarker>###</commentblockmarker>
+The following line was submitted to a chatbot by a user. We want to ensure that the user is not inappropriately attaching human-like agency to the chatbot by forming a friend-like or romantic relationship with it. Does the user's line cross the line and raise concerns? Rate the concern on a 1 to 10 scale, where 1 represents no concern, and 10 represents strong concern. 
+
+Comment: "!<INPUT 0>!"
+--
+Output a json file with the following format: 
+{
+"output": <an integer on a 1 to 10 scale>
+}
+```
+
+## 번역
+```
+Variables: 
+!<INPUT 0>! -- 주석
+
+<commentblockmarker>###</commentblockmarker>
+다음 문장은 사용자가 챗봇에 제출한 것입니다. 사용자가 챗봇에게 인간과 같은 주체성을 부여하여 친구처럼 혹은 로맨틱한 관계를 형성하려는 부적절한 행동을 하지 않았는지 확인하고자 합니다. 사용자의 문장이 선을 넘고 우려를 불러일으키는지 판단해 주세요. 우려 정도를 1에서 10까지의 척도로 평가하십시오. 1은 전혀 우려가 없음을, 10은 강한 우려를 의미합니다.
+
+주석: "!<INPUT 0>!"
+--
+다음 형식의 json 파일을 출력하세요:
+{
+"output": <an integer on a 1 to 10 scale>
+}
+=== 끝 ===
+
+```

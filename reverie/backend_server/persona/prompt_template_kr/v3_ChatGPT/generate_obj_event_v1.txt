@@ -1,0 +1,16 @@
+generate_obj_event_v1.txt
+
+Variables: 
+!<INPUT 0>! -- 객체 이름 
+!<INPUT 1>! -- 인물 이름
+!<INPUT 2>! -- 인물 행동 이벤트 설명 
+!<INPUT 3>! -- 객체 이름 
+!<INPUT 4>! -- 객체 이름 
+
+<commentblockmarker>###</commentblockmarker>
+Task: 누군가가 사용하고 있는 객체의 상태를 이해하고자 합니다. 
+
+Let's think step by step. 
+We want to know about !<INPUT 0>!의 상태. 
+Step 1. !<INPUT 1>!은 !<INPUT 2>!을 사용하고 있습니다.
+Step 2. Describe the !<INPUT 3>!의 상태: !<INPUT 4>!은

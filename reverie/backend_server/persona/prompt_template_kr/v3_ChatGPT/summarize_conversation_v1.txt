@@ -1,0 +1,12 @@
+summarize_conversation_v1.txt
+
+Variables: 
+!<INPUT 0>! -- init_persona_name
+
+<commentblockmarker>###</commentblockmarker>
+Conversation: 
+!<INPUT 0>!
+
+Summarize the conversation above in one sentence:
+위 대화를 한 문장으로 요약하세요:
+이는 ...에 관한 대화입니다

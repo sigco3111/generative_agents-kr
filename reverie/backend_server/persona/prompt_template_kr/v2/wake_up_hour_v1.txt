@@ -1,0 +1,13 @@
+wake_up_hour_v1.txt
+
+Variables: 
+!<INPUT 0>! -- 정체성 안정 집합
+!<INPUT 1>! -- 생활 양식
+!<INPUT 2>! -- 인물 이름
+
+<commentblockmarker>###</commentblockmarker>
+!<INPUT 0>!
+
+일반적으로, !<INPUT 1>!
+!<INPUT 2>!의 기상 시각:
+=== 끝 ===

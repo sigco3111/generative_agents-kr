@@ -239,7 +239,29 @@ def safe_generate_response(prompt, gpt_parameter, repeat=5, fail_safe_response="
 
 
 def generate_prompt(curr_input, prompt_lib_file):
-    """원본 generate_prompt() 호환."""
+    """원본 generate_prompt() 호환 + 한국어 자동 라우팅.
+
+    prompt_lib_file이 "persona/prompt_template/..." 형태일 때,
+    prompt_template_kr/ 아래에 동일 상대경로 파일이 있으면 그것을 우선 사용.
+    없으면 영문 원본 사용 (fallback).
+    """
+    # 한국어 자동 라우팅: prompt_template_kr/ 우선
+    if prompt_lib_file.startswith("persona/prompt_template/"):
+        ko_rel = prompt_lib_file[len("persona/prompt_template/"):]
+        # 절대 경로 우선 시도 -> cwd 기준으로 fallback
+        candidates = [
+            os.path.join("persona", "prompt_template_kr", ko_rel),
+            os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                "prompt_template_kr", ko_rel,
+            ),
+        ]
+        # 또는 cwd가 reverie/backend_server/persona 라면 prompt_template_kr 직접
+        candidates.append(os.path.join("prompt_template_kr", ko_rel))
+        for c in candidates:
+            if os.path.exists(c):
+                prompt_lib_file = c
+                break
     if isinstance(curr_input, str):
         curr_input = [curr_input]
     curr_input = [str(i) for i in curr_input]

@@ -1,0 +1,36 @@
+# 검수: `v2/whisper_inner_thought_v1.txt`
+
+- 원본: 249자
+- 번역: 191자
+- 보존된 코드 표식: 3/3
+
+## 원본
+```
+whisper_inner_thought_v1.txt
+
+Variables: 
+!<INPUT 0>! -- init persona name
+!<INPUT 1>! -- whisper
+
+<commentblockmarker>###</commentblockmarker>
+Translate the following thought into a statement about !<INPUT 0>!. 
+
+Thought: "!<INPUT 1>!"
+Statement: "
+```
+
+## 번역
+```
+whisper_inner_thought_v1.txt
+
+Variables: 
+!<INPUT 0>! -- 초기 인물 이름
+!<INPUT 1>! -- 속삭임
+
+<commentblockmarker>###</commentblockmarker>
+!<INPUT 0>!에 대한 진술로 다음 생각을 번역하세요. 
+
+생각: "!<INPUT 1>!"
+진술: "
+
+```

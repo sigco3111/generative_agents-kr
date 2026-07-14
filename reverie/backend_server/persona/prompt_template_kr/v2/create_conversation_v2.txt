@@ -1,0 +1,47 @@
+create_conversation_v2.txt
+
+Variables: 
+!<INPUT 0>! -- 초기 페르소나 iss
+!<INPUT 1>! -- 목표 페르소나 iss
+
+!<INPUT 2>! -- 초기 페르소나 이름
+!<INPUT 3>! -- 목표 페르소나 이름
+!<INPUT 4>! -- 초기 페르소나의 생각
+
+!<INPUT 5>! -- 목표 페르소나 이름
+!<INPUT 6>! -- 초기 페르소나 이름
+!<INPUT 7>! -- 목표 페르소나의 생각
+
+!<INPUT 8>! -- 현재 시간
+!<INPUT 9>! -- 초기 페르소나 현재 행동 설명
+!<INPUT 10>! -- 목표 페르소나 현재 행동 설명
+
+!<INPUT 11>! -- 이전 대화
+
+!<INPUT 12>! -- 초기 페르소나 이름
+!<INPUT 13>! -- 목표 페르소나 이름
+!<INPUT 14>! -- 현재 위치 이름
+!<INPUT 15>! -- 초기 페르소나 이름
+
+<commentblockmarker>###</commentblockmarker>
+두 명의 인물이 있습니다. 
+
+인물 1. 
+!<INPUT 0>!
+
+인물 2. 
+!<INPUT 1>!
+---
+상황: 
+다음은 !<INPUT 2>!가 !<INPUT 3>!에 대해 생각하는 내용입니다: 
+!<INPUT 4>!
+다음은 !<INPUT 5>!가 !<INPUT 6>!에 대해 생각하는 내용입니다:
+!<INPUT 7>!
+현재 시각은 !<INPUT 8>!입니다.
+-- !<INPUT 9>!
+-- !<INPUT 10>!
+!<INPUT 11>!
+
+!<INPUT 12>!와 !<INPUT 13>!은 !<INPUT 14>!에 있습니다. 지금 그들은 무엇을 이야기할까요?
+
+!<INPUT 15>!:

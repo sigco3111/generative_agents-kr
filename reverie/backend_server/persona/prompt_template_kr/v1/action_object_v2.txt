@@ -1,0 +1,33 @@
+Variables: 
+!<INPUT 0>! -- 현재 행동 순서
+!<INPUT 1>! -- 사용 가능한 객체
+
+<commentblockmarker>###</commentblockmarker>
+현재 활동: 침대에서 잠자기
+사용 가능한 객체: {bed, easel, closet, painting}
+사용 가능한 객체 중 가장 관련성이 높은 하나를 선택하세요: bed
+---
+현재 활동: 그림 그리기
+사용 가능한 객체: {easel, closet, sink, microwave}
+사용 가능한 객체 중 가장 관련성이 높은 하나를 선택하세요: easel
+---
+현재 활동: 요리하기
+사용 가능한 객체: {stove, sink, fridge, counter}
+사용 가능한 객체 중 가장 관련성이 높은 하나를 선택하세요: stove
+---
+현재 활동: TV 시청
+사용 가능한 객체: {couch, TV, remote, coffee table}
+사용 가능한 객체 중 가장 관련성이 높은 하나를 선택하세요: TV
+---
+현재 활동: 공부하기
+사용 가능한 객체: {desk, computer, chair, bookshelf}
+사용 가능한 객체 중 가장 관련성이 높은 하나를 선택하세요: desk
+---
+현재 활동: 전화 통화
+사용 가능한 객체: {phone, charger, bed, nightstand}
+사용 가능한 객체 중 가장 관련성이 높은 하나를 선택하세요: phone
+---
+현재 활동: !<INPUT 0>!
+사용 가능한 객체: {!<INPUT 1>!}
+사용 가능한 객체 중 가장 관련성이 높은 하나를 선택하세요: 
+=== 끝 ===
