@@ -14,8 +14,10 @@ static_dirs/*
 # 시뮬레이션 결과는 추적 안함 (재생성 가능)
 environment/frontend_server/storage/
 environment/frontend_server/compressed_storage/
+environment/frontend_server/temp_storage/
 environment/frontend_server/db.sqlite3
 environment/frontend_server/*.log
+environment/frontend_server/environment/
 reverie/backend_server/storage/
 reverie/backend_server/temp_storage/
 reverie/backend_server/environment/
