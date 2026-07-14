@@ -306,13 +306,31 @@ def generate_prompt(curr_input, prompt_lib_file):
 # ---------------------------------------------------------------------------
 
 def _nim_embed(text, input_type):
+    # NIM gpt-oss-120b (reasoning model) 마이그레이션: 빈/특수 입력에 500 가능.
+    # 빈 텍스트/공백만 있는 경우 0 벡터 반환 (NIM 호출 안 함).
+    safe_text = (text or "").strip()
+    if not safe_text:
+        # 2048d 0 벡터 반환 (모델 출력 차원과 동일)
+        return [0.0] * 2048
     body = {
         "model": EMBED_MODEL,
-        "input": [text],
+        "input": [safe_text],
         "input_type": input_type,
     }
-    resp = _nim_post("/embeddings", body)
-    return resp["data"][0]["embedding"]
+    try:
+        resp = _nim_post("/embeddings", body)
+        return resp["data"][0]["embedding"]
+    except urllib.error.HTTPError as e:
+        # 500/400 일 때 한 번만 재시도, 그래도 안되면 0 벡터
+        if e.code in (500, 502, 503, 504):
+            try:
+                resp = _nim_post("/embeddings", body)
+                return resp["data"][0]["embedding"]
+            except Exception:
+                return [0.0] * 2048
+        return [0.0] * 2048
+    except Exception:
+        return [0.0] * 2048
 
 
 def get_embedding(text, model=None):
