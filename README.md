@@ -78,7 +78,7 @@ python3 gpt_structure.py
 
 | 패키지 | 원본 버전 | 문제 | 해결 |
 |--------|----------|------|------|
-| `Pillow` | 8.4.0 | Python 3.11에서 libjpeg 등 native 의존성 빌드 실패 | `pip install Pillow` (Hermes venv에 이미 12.2.0 있음) |
+| `Pillow` | 8.4.0 | ❌ Python 3.11에서 libjpeg 등 native 의존성 빌드 실패 | **`pip install "Pillow>=10.0"` 먼저 (wheel 빌드된 버전)** |
 | `Django` | 2.2 | Python 3.11 일부 syntax 미지원 | `pip install "Django>=4.2,<5"` |
 | `gensim` | 3.8.0 | Python 3.11에서 cython 호환 X | `pip install "gensim>=4.3"` |
 | `pandas`/`numpy`/`scipy` | 1.x | ABI 호환성 (Pillow 의존) | `pip install --upgrade` |
@@ -101,9 +101,17 @@ pip install --upgrade "Django>=4.2,<5" "numpy>=1.26,<2" "pandas>=2.0" \
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-pip install --upgrade -r requirements.txt  # Pillow 8.4.0 빌드 실패는 정상
-pip install --upgrade "Pillow" "Django>=4.2,<5" "gensim>=4.3"  # override
+
+# ⚠️ Pillow 8.4.0 빌드 실패 → Pillow 최신(wheel)을 먼저 설치
+pip install --upgrade "Pillow>=10.0"
+pip install --upgrade "Django>=4.2,<5" "gensim>=4.3"
+pip install -r requirements.txt  # 나머지 의존성
+pip install --upgrade "numpy>=1.26,<2" "pandas>=2.0" "scikit-learn>=1.4" "scipy>=1.11" "statsmodels>=0.14" "seaborn>=0.13" "matplotlib>=3.8" "nltk>=3.8" "openai>=1.0"
 ```
+
+> 💡 **Pillow 빌드 실패 회피**: macOS에서 `Pillow==8.4.0`은 libjpeg 등 native 라이브러리가 필요한데,
+> Python 3.11 wheel이 없어서 source build가 실패합니다. `Pillow>=10.0`은 wheel이 미리 빌드되어
+> libjpeg 없이도 즉시 설치됩니다.
 
 ### 검증된 의존성 조합 (2026-07)
 
