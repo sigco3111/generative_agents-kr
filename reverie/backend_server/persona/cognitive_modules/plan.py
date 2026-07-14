@@ -626,6 +626,21 @@ def _determine_action(persona, maze):
   act_sector = generate_action_sector(act_desp, persona, maze)
   act_arena = generate_action_arena(act_desp, persona, maze, act_world, act_sector)
   act_address = f"{act_world}:{act_sector}:{act_arena}"
+  # NIM gpt-oss-120b 마이그레이션: LLM이 무효한 arena를 반환할 때
+  # (TOKEN LIMIT 폴백 등) 시뮬이 죽지 않도록 fallback.
+  valid_arenas = list(maze.address_tiles.get(act_world, {}).get(act_sector, {}).keys())
+  if act_arena not in valid_arenas and act_arena.lower() not in [a.lower() for a in valid_arenas]:
+    # 현재 위치에 머무름 (제자리 행동)
+    curr_tile = persona.scratch.curr_tile
+    try:
+      persona.scratch.add_new_action(
+          ":".join([str(p) for p in curr_tile[:3]]) + ":__stay__",
+          act_desp,
+          curr_tile,
+      )
+    except Exception:
+      pass
+    return  # 다음 step에서 다시 시도
   act_game_object = generate_action_game_object(act_desp, act_address,
                                                 persona, maze)
   new_address = f"{act_world}:{act_sector}:{act_arena}:{act_game_object}"

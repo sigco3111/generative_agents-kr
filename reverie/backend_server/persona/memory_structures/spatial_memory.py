@@ -98,13 +98,17 @@ class MemoryTree:
     """
     curr_world, curr_sector, curr_arena = arena.split(":")
 
-    if not curr_arena: 
+    if not curr_arena:
       return ""
 
-    try: 
+    try:
       x = ", ".join(list(self.tree[curr_world][curr_sector][curr_arena]))
-    except: 
-      x = ", ".join(list(self.tree[curr_world][curr_sector][curr_arena.lower()]))
+    except:
+      try:
+        x = ", ".join(list(self.tree[curr_world][curr_sector][curr_arena.lower()]))
+      except (KeyError, TypeError):
+        # LLM이 만든 arena가 maze에 없을 때 (TOKEN LIMIT 폴백 등) — 빈 리스트 반환
+        return ""
     return x
 
 
