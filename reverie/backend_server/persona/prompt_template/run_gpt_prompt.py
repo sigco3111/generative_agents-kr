@@ -362,21 +362,56 @@ def run_gpt_prompt_task_decomp(persona,
     print ("-==- -==- -==- ")
 
     # TODO SOMETHING HERE sometimes fails... See screenshot
-    temp = [i.strip() for i in gpt_response.split("\n")]
-    _cr = []
+    # NIM gpt-oss-120b (reasoning model) 마이그레이션: 한국어 응답이
+    # **이름** 헤더나 | 표 | markdown을 포함할 수 있으므로 robust 파싱.
+    # 먼저 정규식으로 (n) task... (duration in minutes: X, ...) 패턴 추출 시도.
+    import re as _re
+    pattern = r'(\d+)\)\s*(.*?)\(duration in minutes:\s*(\d+)'
+    matches = _re.findall(pattern, gpt_response, _re.DOTALL)
     cr = []
-    for count, i in enumerate(temp): 
-      if count != 0: 
-        _cr += [" ".join([j.strip () for j in i.split(" ")][3:])]
-      else: 
-        _cr += [i]
-    for count, i in enumerate(_cr): 
-      k = [j.strip() for j in i.split("(duration in minutes:")]
-      task = k[0]
-      if task[-1] == ".": 
-        task = task[:-1]
-      duration = int(k[1].split(",")[0].strip())
-      cr += [[task, duration]]
+    if matches:
+      # 정규식 매칭 성공
+      for _, task, dur in matches:
+        task = task.strip()
+        # 끝의 마침표/공백 정리
+        if task.endswith("."): task = task[:-1]
+        task = _re.sub(r'\s+', ' ', task).strip()
+        try:
+          cr += [[task, int(dur)]]
+        except ValueError:
+          pass
+    if not cr:
+      # 폴백: 원본 라인 기반 파싱
+      temp = [i.strip() for i in gpt_response.split("\n")]
+      cleaned = []
+      for line in temp:
+        if not line: continue
+        if (line.startswith("**") and line.endswith("**")) or \
+           line.startswith("|") or line.startswith("---") or \
+           (line.startswith("**") and ("–" in line or "-" in line)):
+          continue
+        cleaned.append(line)
+      temp = cleaned if cleaned else [i.strip() for i in gpt_response.split("\n") if i.strip()]
+      _cr = []
+      for count, i in enumerate(temp):
+        if count != 0:
+          parts = i.split(" ")
+          if len(parts) >= 4:
+            _cr += [" ".join([j.strip() for j in parts][3:])]
+          else:
+            _cr += [i]
+        else:
+          _cr += [i]
+      for i in _cr:
+        k = [j.strip() for j in i.split("(duration in minutes:")]
+        if len(k) < 2: continue
+        task = k[0]
+        if task[-1] == ".": task = task[:-1]
+        try:
+          duration = int(k[1].split(",")[0].strip())
+          cr += [[task, duration]]
+        except (ValueError, IndexError):
+          continue
 
     total_expected_min = int(prompt.split("(total duration in minutes")[-1]
                                    .split("):")[0].strip())
