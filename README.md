@@ -36,14 +36,14 @@
 ```bash
 # 1. 클론
 git clone https://github.com/sigco3111/generative_agents-kr.git
-cd generative_agents-kr
+cd generative-agents-kr
 
 # 2. venv 생성 (PEP 668 회피 — macOS Sonoma+ 권장)
 python3 -m venv .venv
 source .venv/bin/activate
 
-# 3. 의존성 설치
-pip install -r requirements.txt
+# 3. 의존성 설치 (Python 3.11+는 --upgrade 플래그 필요 — 아래 "호환성 노트" 참고)
+pip install --upgrade -r requirements.txt
 pip install python-dotenv  # 선택
 
 # 4. NIM API 키 설정
@@ -71,6 +71,61 @@ python3 gpt_structure.py
     '이서연 카페 커피' ↔ '이서연 음료' = 0.474
     부정 케이스 (가드 전): 0.457, (가드 후): 0.057
 ```
+
+## ⚠️ Python 호환성 노트
+
+원본 `requirements.txt`는 **2022년 Python 3.7~3.9 환경에서 작성**되었습니다. Python 3.10+에서는 다음 패키지들이 빌드 실패 또는 호환성 문제가 있습니다:
+
+| 패키지 | 원본 버전 | 문제 | 해결 |
+|--------|----------|------|------|
+| `Pillow` | 8.4.0 | Python 3.11에서 libjpeg 등 native 의존성 빌드 실패 | `pip install Pillow` (Hermes venv에 이미 12.2.0 있음) |
+| `Django` | 2.2 | Python 3.11 일부 syntax 미지원 | `pip install "Django>=4.2,<5"` |
+| `gensim` | 3.8.0 | Python 3.11에서 cython 호환 X | `pip install "gensim>=4.3"` |
+| `pandas`/`numpy`/`scipy` | 1.x | ABI 호환성 (Pillow 의존) | `pip install --upgrade` |
+| `sklearn` | 1.3.0 | 메타 패키지, scikit-learn 1.4+ 권장 | `pip install "scikit-learn>=1.4"` |
+
+### 빠른 호환 설치 (검증된 조합 — Python 3.11)
+
+Hermes venv 사용 시 (이미 PIL 있음):
+
+```bash
+source ~/.hermes/hermes-agent/venv/bin/activate
+pip install --upgrade "Django>=4.2,<5" "numpy>=1.26,<2" "pandas>=2.0" \
+  "scikit-learn>=1.4" "scipy>=1.11" "statsmodels>=0.14" "seaborn>=0.13" \
+  "matplotlib>=3.8" "gensim>=4.3" "nltk>=3.8" "openai>=1.0"
+```
+
+새 venv 사용 시:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install --upgrade -r requirements.txt  # Pillow 8.4.0 빌드 실패는 정상
+pip install --upgrade "Pillow" "Django>=4.2,<5" "gensim>=4.3"  # override
+```
+
+### 검증된 의존성 조합 (2026-07)
+
+본 fork는 다음 버전으로 self-test 통과 검증됨:
+
+| 패키지 | 검증 버전 |
+|--------|----------|
+| Django | 4.2.30 |
+| numpy | 1.26.4 |
+| pandas | 3.0.3 |
+| scikit-learn | 1.9.0 |
+| gensim | 4.4.0 |
+| scipy | 1.17.1 |
+| matplotlib | 3.11.0 |
+| openai | 2.24.0 |
+| Pillow | 12.2.0 |
+| seaborn | 0.13.2 |
+
+> ⚠️ **원본 시뮬레이션 코드와의 호환성**: 위 업그레이드 조합은 self-test (`gpt_structure.py`) 통과 확인됨.
+> 실제 `reverie.py` 실행 시 Django 4.x 변경사항 (예: `path()` 사용) 으로 마이그레이션 필요할 수 있음.
+
+---
 
 ## 🎮 시뮬레이션 실행
 
