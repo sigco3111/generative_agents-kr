@@ -413,8 +413,22 @@ def run_gpt_prompt_task_decomp(persona,
         except (ValueError, IndexError):
           continue
 
-    total_expected_min = int(prompt.split("(total duration in minutes")[-1]
-                                   .split("):")[0].strip())
+    # LLM 응답이 깨졌을 때 (예: TOKEN LIMIT, 한국어 markdown) 안전한 폴백
+    try:
+      total_expected_min = int(prompt.split("(total duration in minutes")[-1]
+                                     .split("):")[0].strip())
+    except (ValueError, IndexError):
+      # 마지막 (total duration in minutes N) 추출 시도
+      import re as _re2
+      m = _re2.search(r'\(total duration in minutes[^0-9]*(\d+)', prompt)
+      if m:
+        total_expected_min = int(m.group(1))
+      else:
+        total_expected_min = 60  # 기본 1시간 폴백
+
+    # cr이 비어있으면 (LLM이 깨진 응답만 줌) fail_safe 동작으로 단일 task
+    if not cr:
+      cr = [["(default task)", 5]]
     
     # TODO -- now, you need to make sure that this is the same as the sum of 
     #         the current action sequence. 
