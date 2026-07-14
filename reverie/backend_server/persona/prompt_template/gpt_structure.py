@@ -102,7 +102,34 @@ def _nim_chat(messages, model=CHAT_MODEL, temperature=0.7, max_tokens=2048, top_
         "top_p": top_p,
     }
     resp = _nim_post("/chat/completions", body)
-    return resp["choices"][0]["message"]["content"]
+    msg = resp["choices"][0]["message"]
+
+    # gpt-oss-120b (reasoning model) 처리:
+    # reasoning_content에 사고를 출력하고, content는 None이거나 짧음.
+    # 비어있으면 reasoning에서 추출 시도 (간단한 후처리).
+    content = msg.get("content") or ""
+    if not content.strip():
+        reasoning = msg.get("reasoning_content") or ""
+        if reasoning.strip():
+            # reasoning 끝부분에서 실제 응답을 추출 (간단 휴리스틱)
+            # gpt-oss-120b reasoning은 일반적으로 "<final>...</final>" 포함
+            import re as _re
+            # 1) "<final>...</final>" 패턴 시도
+            m = _re.search(r"<final>(.*?)</final>", reasoning, _re.DOTALL)
+            if m:
+                content = m.group(1).strip()
+            else:
+                # 2) reasoning 마지막 줄 시도
+                lines = [l for l in reasoning.strip().split("\n") if l.strip()]
+                # 마크다운 코드 펜스 제거
+                last = lines[-1].strip().strip("`")
+                # 너무 길면 마지막 문장 추출
+                if len(last) > max_tokens * 4:  # 명백히 너무 김
+                    content = (lines[-2].strip() if len(lines) > 1 else last)[:max_tokens * 3]
+                else:
+                    content = last
+
+    return content
 
 
 def ChatGPT_single_request(prompt):
