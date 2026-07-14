@@ -241,14 +241,18 @@ def ChatGPT_safe_generate_response_OLD(prompt, repeat=3, fail_safe_response="err
 # ---------------------------------------------------------------------------
 
 def GPT_request(prompt, gpt_parameter):
-    """원본 Completion.create() 호환. gpt-3.5-turbo로 우회."""
+    """원본 Completion.create() 호환. gpt-3.5-turbo로 우회.
+
+    NIM gpt-oss-120b 마이그레이션: max_tokens 기본값 100 → 1000으로 상향.
+    (reasoning 모델이 응답 잘림 방지)
+    """
     temp_sleep()
     try:
         return _nim_chat(
             [{"role": "user", "content": prompt}],
             model=CHAT_MODEL,
             temperature=gpt_parameter.get("temperature", 0.7),
-            max_tokens=gpt_parameter.get("max_tokens", 100),
+            max_tokens=gpt_parameter.get("max_tokens", 1000),
         )
     except Exception:
         return "TOKEN LIMIT EXCEEDED"
