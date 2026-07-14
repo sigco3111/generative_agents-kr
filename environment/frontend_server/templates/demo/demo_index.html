@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}데모 시뮬레이션 선택{% endblock %}
+
+{% block content %}
+<br>
+<div style="max-width:60em; margin:0 auto; padding:1em">
+  <h1>🎬 사용 가능한 시뮬레이션</h1>
+  <p style="color:#666">
+    백엔드에서 진행된 시뮬레이션 목록입니다. 각 시뮬은 step 0부터 시작해서 최신 step까지 시뮬레이션이 진행됩니다.
+  </p>
+
+  {% if sims %}
+    <div style="margin-top:2em">
+      {% for sim in sims %}
+        <div style="background-color:#f8f9fa; padding:1.5em; border-radius:10px; margin-bottom:1em; border:1px solid #e0e0e0">
+          <h2 style="margin-top:0">{{ sim.name }}</h2>
+          <p>📊 최신 step: <strong>{{ sim.latest_step }}</strong></p>
+          <a href="/demo/{{ sim.name }}/{{ sim.latest_step }}/2/">
+            <button type="button" class="btn btn-primary btn-lg">
+              ▶ 데모 보기 (step {{ sim.latest_step }})
+            </button>
+          </a>
+          <a href="/replay/{{ sim.name }}/{{ sim.latest_step }}/" style="margin-left:0.5em">
+            <button type="button" class="btn btn-default btn-lg">
+              ↩ 리플레이
+            </button>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="background-color:#fff8dc; padding:1.5em; border-radius:10px; border:1px solid #f0d970">
+      <h3 style="margin-top:0">⚠️ 시뮬레이션이 없습니다</h3>
+      <p>백엔드에서 시뮬레이션을 먼저 시작해주세요:</p>
+      <pre style="background-color:#2c3e50; color:#ecf0f1; padding:1em; border-radius:5px"><code>cd reverie/backend_server
+python3 reverie.py
+# Enter the name of the forked simulation: base_the_ville_isabella_maria_klaus
+# Enter the name of the new simulation: ICBM_kr_test
+# Enter option: run 100</code></pre>
+    </div>
+  {% endif %}
+</div>
+{% endblock content %}

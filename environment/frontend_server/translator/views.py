@@ -19,15 +19,45 @@ from django.templatetags.static import static
 # Django 3.1에서 deprecate, 4.0에서 제거. templatetags.static 사용.
 from .models import *
 
-def landing(request): 
+def landing(request):
   context = {}
   template = "landing/landing.html"
   return render(request, template, context)
 
 
-def demo(request, sim_code, step, play_speed="2"): 
+def demo_index(request):
+  """데모 진입점: 사용 가능한 시뮬 목록 보여줌."""
+  sims = []
+  for d in os.listdir("storage"):
+    full = os.path.join("storage", d)
+    if not os.path.isdir(full):
+      continue
+    env_dir = os.path.join(full, "environment")
+    if not os.path.isdir(env_dir):
+      continue
+    steps = [int(f.replace(".json", "")) for f in os.listdir(env_dir) if f.endswith(".json")]
+    if steps:
+      sims.append({"name": d, "latest_step": max(steps)})
+  return render(request, "demo/demo_index.html", {"sims": sims})
+
+
+def demo(request, sim_code, step, play_speed="2"):
   move_file = f"compressed_storage/{sim_code}/master_movement.json"
   meta_file = f"compressed_storage/{sim_code}/meta.json"
+  # NIM gpt-oss-120b 마이그레이션: compressed_storage 미존재 시
+  # 실제 storage의 movement JSON을 사용하도록 fallback.
+  if not os.path.exists(move_file):
+    storage_dir = f"storage/{sim_code}"
+    if os.path.exists(storage_dir):
+      # 마지막 step으로 리다이렉트
+      env_dir = os.path.join(storage_dir, "environment")
+      if os.path.isdir(env_dir):
+        steps = [int(f.replace(".json", "")) for f in os.listdir(env_dir) if f.endswith(".json")]
+        if steps:
+          latest = max(steps)
+          from django.shortcuts import redirect
+          return redirect(f"/demo/{sim_code}/{latest}/2/")
+      return HttpResponse(content=f"Demo not available for {sim_code}. Run simulation first.", status=404)
   step = int(step)
   play_speed_opt = {"1": 1, "2": 2, "3": 4,
                     "4": 8, "5": 16, "6": 32}

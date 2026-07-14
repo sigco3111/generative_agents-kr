@@ -7,7 +7,10 @@ frontend_server/settings/local.py
 storage/*
 static_dirs/*
 
-# 시뮬레이션 베이스는 추적 (다운로드 불필요)
+# 시뮬레이션 시각 자산 (visuals/) — 추적 (38MB)
+!static_dirs/assets/the_ville/visuals/
+
+# 시뮬레이션 베이스는 추적 (다운로드 불필료)
 !storage/base_the_ville_isabella_maria_klaus/*
 !storage/base_the_ville_n25/*
 
