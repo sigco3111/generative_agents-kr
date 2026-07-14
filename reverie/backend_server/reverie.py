@@ -398,7 +398,10 @@ class ReverieServer:
           #  "persona": {"Klaus Mueller": {"movement": [38, 12]}}, 
           #  "meta": {curr_time: <datetime>}}
           curr_move_file = f"{sim_folder}/movement/{self.step}.json"
-          with open(curr_move_file, "w") as outfile: 
+          # NIM gpt-oss-120b 마이그레이션: movement 디렉토리 자동 생성
+          import os as _os
+          _os.makedirs(os.path.dirname(curr_move_file), exist_ok=True)
+          with open(curr_move_file, "w") as outfile:
             outfile.write(json.dumps(movements, indent=2))
 
           # After this cycle, the world takes one step forward, and the 
