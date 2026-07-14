@@ -120,47 +120,73 @@ python3 gpt_structure.py
 
 ## 🎮 시뮬레이션 실행
 
-**각 터미널을 열 때마다 venv를 먼저 활성화해야 합니다** (새 shell에서는 venv가 자동 비활성화됨):
+> **⚠️ 시뮬레이션은 두 개의 별도 터미널에서 실행됩니다:**
+> - **터미널 1**: Django 시각화 서버 (`manage.py runserver`)
+> - **터미널 2**: 시뮬레이션 백엔드 (`reverie.py`)
+>
+> 두 서버가 **동시에 실행 중**이어야 브라우저에서 시뮬레이션을 볼 수 있습니다.
+
+**각 터미널을 열 때마다 venv를 먼저 활성화해야 합니다** (새 shell에서는 venv가 자동 비활성화됨).
+
+### 터미널 1: Django 시각화 서버
 
 ```bash
-# 모든 터미널 공통 — 프로젝트 루트에서
-cd /path/to/generative-agents-kr
-source .venv/bin/activate  # ← 이거 안 하면 Django/NumPy 못 찾음
-export NVIDIA_API_KEY="***"
-
-# 1. 환경 서버 (Django 시각화) — 터미널 1
-cd environment/frontend_server
-unset PYTHONPATH  # ← Hermes 데스크탑이 PYTHONPATH를 export 하는 경우 필수
-python manage.py runserver
-# → http://localhost:8000 접속
-
-# 2. 시뮬레이션 서버 — 터미널 2 (venv 활성화 다시 필요!)
 cd /path/to/generative-agents-kr
 source .venv/bin/activate
 export NVIDIA_API_KEY="***"
-unset PYTHONPATH  # ← 동일
-cd reverie/backend_server
-python3 reverie.py
-# → "Enter name of forked simulation: July1_the_ville_n3_kr_test" 입력
-# → "Enter option: run 100" 입력
+unset PYTHONPATH  # ← Hermes 데스크탑 사용 시 필수
+
+cd environment/frontend_server
+python manage.py runserver
+# → http://localhost:8000 접속 (브라우저에서 열어두세요)
 ```
 
-> ⚠️ **새 shell을 열 때마다 venv가 풀립니다.** `source .venv/bin/activate` 잊지 마세요.
-> 또는 환경변수를 shell rc (~/.zshrc)에 추가해두면 편리합니다:
-> ```bash
-> echo 'export NVIDIA_API_KEY="***"' >> ~/.zshrc
-> ```
->
-> ⚠️ **Hermes 데스크탑 사용자 주의**: `PYTHONPATH=/Users/mac/.hermes/hermes-agent/...`가
-> 자동으로 export 되어 .venv의 패키지가 아닌 Hermes 패키지가 import 됩니다.
-> venv 활성화 후 `unset PYTHONPATH`를 실행하세요. 또는 .zshrc에 추가:
-> ```bash
-> cat >> ~/.zshrc << 'EOF'
-> alias ungate-hermes='unset PYTHONPATH'
-> EOF
-> ```
+### 터미널 2: 시뮬레이션 백엔드
+
+```bash
+cd /path/to/generative-agents-kr
+source .venv/bin/activate
+export NVIDIA_API_KEY="***"
+unset PYTHONPATH  # ← Hermes 데스크탑 사용 시 필수
+
+cd reverie/backend_server
+python3 reverie.py
+# → "Enter name of forked simulation:" 에 시나리오 이름 입력 (예: July1_the_ville_n3_kr_test)
+# → "Enter option:" 에 run 100
+```
 
 브라우저를 새로고침하면 메인 시뮬레이션 화면이 한국어로 표시됩니다.
+
+### 시뮬레이션 백엔드에서 쓸 수 있는 명령어 (reverie.py 입력)
+
+| 명령 | 설명 |
+|------|------|
+| `run 100` | 100 step 시뮬레이션 진행 |
+| `save` | 현재 상태 저장 |
+| `fin` / `finish` | 저장 후 종료 |
+| `print persona schedule 이서연` | 페르소나의 일과 출력 |
+| `print all persona schedule` | 모든 페르소나의 일과 출력 |
+| `exit` | 저장하지 않고 종료 (데이터 삭제) |
+
+> 💡 **시나리오 이름**: `July1_the_ville_n3_kr_test` 는 본 fork의 한국 페르소나 3명용 시나리오.
+> `storage/` 디렉토리가 비어있으면 시뮬레이션을 새로 fork할 수 없으므로 원본 제공
+> 시뮬레이션 파일이 필요합니다. (Apache 2.0 원본의 `the_ville` 시나리오 등)
+
+### ⚠️ 새 shell + venv + PYTHONPATH 주의
+
+- 새 shell을 열 때마다 venv가 풀리므로 `source .venv/bin/activate` 잊지 마세요
+- `.zshrc`에 NVIDIA_API_KEY 등록하면 편리:
+  ```bash
+  echo 'export NVIDIA_API_KEY="***"' >> ~/.zshrc
+  ```
+- **Hermes 데스크탑 사용자**: `PYTHONPATH=/Users/mac/.hermes/hermes-agent/...`가
+  자동으로 export 되어 .venv 패키지가 아닌 Hermes 패키지가 import 됩니다.
+  venv 활성화 후 `unset PYTHONPATH` 필수. 또는 alias 등록:
+  ```bash
+  cat >> ~/.zshrc << 'EOF'
+  alias ungate-hermes='unset PYTHONPATH'
+  EOF
+  ```
 
 ### 🐍 Django 4.x 마이그레이션 (완료됨)
 
