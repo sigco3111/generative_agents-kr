@@ -264,6 +264,12 @@ def safe_generate_response(prompt, gpt_parameter, repeat=5, fail_safe_response="
         print(prompt)
     for i in range(repeat):
         resp = GPT_request(prompt, gpt_parameter)
+        # NIM gpt-oss-120b 마이그레이션: 깨진 응답 감지
+        # TOKEN LIMIT / 빈 응답 / 너무 짧은 응답은 즉시 fail_safe
+        if not resp or "TOKEN LIMIT" in resp or len(resp.strip()) < 20:
+            if debug:
+                print(f"[WARN] bad response (attempt {i+1}): retry")
+            continue
         if func_validate and func_validate(resp, prompt=prompt):
             return func_clean_up(resp, prompt=prompt) if func_clean_up else resp
     return fail_safe_response

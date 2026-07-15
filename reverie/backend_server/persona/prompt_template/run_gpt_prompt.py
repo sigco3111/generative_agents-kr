@@ -462,13 +462,15 @@ def run_gpt_prompt_task_decomp(persona,
 
     return cr
 
-  def __func_validate(gpt_response, prompt=""): 
-    # TODO -- this sometimes generates error 
-    try: 
+  def __func_validate(gpt_response, prompt=""):
+    # TODO -- this sometimes generates error
+    # NIM gpt-oss-120b 마이그레이션: 깨진 응답 감지
+    if not gpt_response or "TOKEN LIMIT" in gpt_response or len(gpt_response.strip()) < 10:
+      return False
+    try:
       __func_clean_up(gpt_response)
-    except: 
-      pass
-      # return False
+    except:
+      return False
     return gpt_response
 
   def get_fail_safe(): 
