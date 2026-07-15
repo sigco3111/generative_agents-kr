@@ -217,18 +217,19 @@ class Persona:
     self.scratch.curr_time = curr_time
 
     # Main cognitive sequence begins here. 
-    perceived = self.perceive(maze)
-    retrieved = self.retrieve(perceived)
-    plan = self.plan(maze, personas, new_day, retrieved)
-    self.reflect()
-
-    # <execution> is a triple set that contains the following components: 
-    # <next_tile> is a x,y coordinate. e.g., (58, 9)
-    # <pronunciatio> is an emoji. e.g., "\ud83d\udca4"
-    # <description> is a string description of the movement. e.g., 
-    #   writing her next novel (editing her novel) 
-    #   @ double studio:double studio:common room:sofa
-    return self.execute(maze, personas, plan)
+    # NIM gpt-oss-120b 마이그레이션: retrieve/plan/reflect 중
+    # hang 가능성 대비 — try/except + 안전한 폴백.
+    try:
+        perceived = self.perceive(maze)
+        retrieved = self.retrieve(perceived)
+        plan = self.plan(maze, personas, new_day, retrieved)
+        self.reflect()
+        return self.execute(maze, personas, plan)
+    except Exception as e:
+        # 실패 시 현재 위치에 머무름 (안전 폴백)
+        return (curr_tile, "❓",
+                f"(sim error: persona staying put) {type(e).__name__}",
+                None)
 
 
   def open_convo_session(self, convo_mode): 
