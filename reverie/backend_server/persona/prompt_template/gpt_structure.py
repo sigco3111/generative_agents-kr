@@ -50,14 +50,36 @@ EMBED_MODEL = "nvidia/llama-nemotron-embed-1b-v2"  # 2048d asymmetric
 # ---------------------------------------------------------------------------
 
 def _nim_post(endpoint, body, timeout=120):
-    """NIM API에 POST 요청. 응답은 JSON dict."""
+    """NIM API에 POST 요청. 응답은 JSON dict.
+
+    NIM gpt-oss-120b 마이그레이션: urllib.request.urlopen이 keep-alive
+    연결에서 hang하는 현상 발견. requests 라이브러리로 전환하여
+    connect_timeout/read_timeout 분리 + connection pool 안정화.
+    """
+    import requests as _requests
     url = f"{NIM_BASE_URL}{endpoint}"
-    data = json.dumps(body).encode("utf-8")
-    req = urllib.request.Request(url, data=data, method="POST")
-    req.add_header("Authorization", f"Bearer {nim_api_key}")
-    req.add_header("Content-Type", "application/json")
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    headers = {
+        "Authorization": f"Bearer {nim_api_key}",
+        "Content-Type": "application/json",
+    }
+    try:
+        r = _requests.post(
+            url,
+            json=body,
+            headers=headers,
+            timeout=(10, timeout),  # (connect, read)
+        )
+        r.raise_for_status()
+        return r.json()
+    except _requests.exceptions.Timeout:
+        raise urllib.error.URLError("NIM request timeout")
+    except _requests.exceptions.RequestException as e:
+        # 호환성 위해 기존 HTTPError로 변환
+        if hasattr(e, "response") and e.response is not None:
+            raise urllib.error.HTTPError(
+                url, e.response.status_code, str(e), {}, None
+            )
+        raise urllib.error.URLError(str(e))
 
 
 def temp_sleep(seconds=0.1):
